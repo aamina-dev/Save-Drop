@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save-Drop Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="userSlider" class="user-slider">
+    <div class="slider-content">
+      <h3>👤 User Profile</h3>
+      <p id="userEmail">Loading...</p>
+      <button class="slider-btn" id="changePasswordBtn">🔑 Change Password</button>
+      <button class="slider-btn logout-btn" id="logoutBtn">🚪 Logout</button>
+    </div>
+  </div>
+
+  <div class="profile-icon" id="profileIcon">
+    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+  </div>
+
+  <header class="header">
+    <h1>💧 Save-Drop : Every Drop Matters!!</h1>
+    <p class="subtitle">Smart Water Monitoring Dashboard</p>
+  </header>
+
+  <div id="alertBar" class="alert-bar hidden">
+    ⚠️ Low Tank Level! Please reuse water carefully.
+  </div>
+
+  <div id="adviceBar" class="advice-bar">
+    💡 Tip: Reuse laundry water for floor cleaning.
+  </div>
+
+  <section class="cards-row">
+
+    <div class="card glass-card">
+      <h3>🌊 Flow Rate</h3>
+      <p class="value" id="flowRate">0 L/sec</p>
+      <span id="flowStatus" class="badge badge-normal">Normal</span>
+    </div>
+
+    <div class="card glass-card">
+      <h3>💧 Tank Level</h3>
+      <div class="circular-progress">
+        <svg width="120" height="120">
+          <circle cx="60" cy="60" r="50" class="progress-bg"></circle>
+          <circle id="progressCircle" cx="60" cy="60" r="50" class="progress-fill"></circle>
+        </svg>
+        <p class="progress-text" id="tankLevel">0%</p>
+      </div>
+      <span id="tankStatus" class="badge badge-medium">Medium</span>
+    </div>
+
+    <div class="card glass-card">
+      <h3>💧Total Water Saved</h3>
+      <p class="value" id="waterSaved">0 Litres</p>
+      <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+      <small class="sub-label">Keep Saving 💧</small>
+    </div>
+
+  </section>
+
+  <footer>
+    Smart Water Monitoring System - IoT | Prepared by Ansari Aamina
+  </footer>
+
+  <script type="module" src="auth.js"></script>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save-Drop Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Hidden SVG gradient defs for circular progress -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%"   stop-color="#0077B6"/>
+        <stop offset="100%" stop-color="#00B4D8"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Side Profile Panel -->
+  <div id="userSlider" class="user-slider">
+
+    <!-- Close Button -->
+    <button class="slider-close" id="sliderClose">&#10005;</button>
+
+    <!-- Avatar -->
+    <div class="slider-avatar">
+      <div class="slider-avatar-ring">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile">
+      </div>
+      <div class="slider-avatar-info">
+        <p class="slider-name">My Account</p>
+        <p id="userEmail" class="slider-email">Loading...</p>
+      </div>
+    </div>
+
+    <div class="slider-divider"></div>
+
+    <!-- Actions -->
+    <div class="slider-actions">
+      <button class="slider-btn" id="changePasswordBtn">
+        <span class="sbtn-icon">&#128273;</span>
+        <span class="sbtn-label">Change Password</span>
+        <span class="sbtn-arrow">&#8250;</span>
+      </button>
+      <button class="slider-btn reset-btn" id="resetWaterBtn">
+        <span class="sbtn-icon">&#128260;</span>
+        <span class="sbtn-label">Reset Water Saved</span>
+        <span class="sbtn-arrow">&#8250;</span>
+      </button>
+      <button class="slider-btn logout-btn" id="logoutBtn">
+        <span class="sbtn-icon">&#128682;</span>
+        <span class="sbtn-label">Sign Out</span>
+        <span class="sbtn-arrow">&#8250;</span>
+      </button>
+    </div>
+
+    <div class="slider-footer">
+      <span>&#128167;</span> Save-Drop &mdash; Every Drop Matters
+    </div>
+
+  </div>
+
+  <!-- Profile Icon -->
+  <div class="profile-icon" id="profileIcon">
+    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile">
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <h1>&#128167; Save-Drop</h1>
+      <p class="subtitle">
+        <span class="live-dot"></span>
+        Smart Water Monitoring &mdash; Every Drop Matters
+      </p>
+      <p id="lastUpdated" class="last-updated">Last updated: &mdash;</p>
+    </div>
+
+    <!-- Animated Waves -->
+    <div class="waves-container">
+      <svg class="wave wave1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
+        <path d="M0,40 C180,80 360,0 540,40 C720,80 900,0 1080,40 C1260,80 1350,20 1440,40 L1440,80 L0,80 Z"/>
+      </svg>
+      <svg class="wave wave2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
+        <path d="M0,50 C200,10 400,70 600,40 C800,10 1000,70 1200,40 C1320,20 1380,60 1440,50 L1440,80 L0,80 Z"/>
+      </svg>
+      <svg class="wave wave3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
+        <path d="M0,60 C240,20 480,80 720,50 C960,20 1200,70 1440,55 L1440,80 L0,80 Z"/>
+      </svg>
+    </div>
+  </header>
+
+  <!-- Alert: Low Water -->
+  <div id="alertLow" class="alert-bar alert-low hidden">
+    &#128308; <strong>Low Water Alert!</strong> &nbsp;Tank is below 10% &mdash; please reuse water carefully.
+  </div>
+
+  <!-- Alert: Almost Full -->
+  <div id="alertFull" class="alert-bar alert-full hidden">
+    &#128994; <strong>Almost Full!</strong> &nbsp;Tank is above 90% &mdash; consider reducing intake.
+  </div>
+
+  <!-- Cards -->
+  <section class="cards-row">
+
+    <!-- Flow Rate Card -->
+    <div class="card glass-card">
+      <h3>&#127754; Flow Rate</h3>
+      <p class="value" id="flowRate">0 <span style="font-size:1.2rem;opacity:.6">L/min</span></p>
+      <span id="flowStatus" class="badge badge-normal">Normal</span>
+    </div>
+
+    <!-- Tank Level Card -->
+    <div class="card glass-card">
+      <h3>&#128167; Tank Level</h3>
+      <div class="circular-progress">
+        <svg width="130" height="130" viewBox="0 0 130 130">
+          <circle cx="65" cy="65" r="52" class="progress-bg"></circle>
+          <circle id="progressCircle" cx="65" cy="65" r="52"
+                  class="progress-fill"
+                  style="stroke-dasharray:326.7;stroke-dashoffset:326.7"></circle>
+        </svg>
+        <p class="progress-text" id="tankLevel">0%</p>
+      </div>
+      <span id="tankStatus" class="badge badge-medium">Medium</span>
+    </div>
+
+    <!-- Total Saved Card -->
+    <div class="card glass-card">
+      <h3>&#129507; Total Water Saved</h3>
+      <p class="value" id="waterSaved">0 <span style="font-size:1.1rem;opacity:.6">L</span></p>
+      <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+      <small class="sub-label">Keep saving &#128167;</small>
+    </div>
+
+  </section>
+
+  <!-- Analytics Section -->
+  <section class="analytics-section">
+    <div class="analytics-header">
+      <div class="analytics-title-group">
+        <span class="analytics-icon">&#128202;</span>
+        <div>
+          <h2>Total Water Saved</h2>
+          <p>Daily totals &mdash; last 8 days</p>
+        </div>
+      </div>
+      <div class="time-filter">
+        <button class="tf-btn active" onclick="setTimeFrame('today',this)">Today</button>
+        <button class="tf-btn" onclick="setTimeFrame('week',this)">This Week</button>
+        <button class="tf-btn" onclick="setTimeFrame('all',this)">All Time</button>
+      </div>
+    </div>
+
+    <div class="analytics-grid analytics-single">
+      <div class="chart-card glass-card">
+        <div class="bar-chart-wrap">
+          <div class="y-axis" id="savedYAxis"></div>
+          <div class="bar-chart" id="savedChart"></div>
+        </div>
+        <div class="x-axis" id="savedXAxis"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sensor History Table -->
+  <section class="history-section">
+    <div class="history-header">
+      <div class="analytics-title-group">
+        <span class="analytics-icon">&#128203;</span>
+        <div>
+          <h2>Sensor History</h2>
+          <p>Latest 10 readings &mdash; live from database</p>
+        </div>
+      </div>
+    </div>
+    <div class="history-table-wrap glass-card">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>&#128336; Timestamp</th>
+            <th>&#127754; Flow Rate</th>
+            <th>&#128167; Tank Level</th>
+            <th>&#129507; Water Saved</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr><td colspan="4" class="history-empty">Loading data&hellip;</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    Smart Water Monitoring System &mdash; IoT &nbsp;&bull;&nbsp; Prepared by Ansari Aamina
+  </footer>
+
+  <script type="module" src="auth.js"></script>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

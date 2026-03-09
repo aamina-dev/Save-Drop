@@ -1,0 +1,354 @@
+/* ========== RESET & VARIABLES ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Light Theme */
+  --bg-color: #f0f4f8;
+  --text-color: #333;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --header-gradient: linear-gradient(135deg, #0077b6, #00b4d8);
+  --shadow: rgba(0, 0, 0, 0.1);
+  --alert-bg: #fff3cd;
+  --advice-bg: #d1e7dd;
+}
+
+body.dark-mode {
+  /* Dark Theme */
+  --bg-color: #1a1a2e;
+  --text-color: #eee;
+  --card-bg: rgba(30, 30, 50, 0.8);
+  --header-gradient: linear-gradient(135deg, #005f8a, #008fc4);
+  --shadow: rgba(255, 255, 255, 0.05);
+  --alert-bg: #664d03;
+  --advice-bg: #0f5132;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg-color);
+  color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+/* ================= LOGIN PAGE ================= */
+.login-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0077b6, #00b4d8);
+}
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: slideDown 0.6s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-header h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #0077b6;
+}
+
+.login-header p {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #666;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 2px solid #ddd;
+  font-size: 1rem;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #0077b6;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #0077b6, #00b4d8);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  transform: scale(1.03);
+}
+
+.error-msg {
+  color: #d32f2f;
+  text-align: center;
+  margin-top: 15px;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* ================= DASHBOARD ================= */
+
+/* Profile Icon */
+.profile-icon {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 15px var(--shadow);
+  z-index: 1000;
+}
+
+.profile-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* User Slider */
+.user-slider {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 300px;
+  height: 100vh;
+  background: var(--card-bg);
+  backdrop-filter: blur(15px);
+  box-shadow: -5px 0 30px var(--shadow);
+  padding: 30px;
+  transition: right 0.4s ease;
+  z-index: 999;
+}
+
+.user-slider.active {
+  right: 0;
+}
+
+.slider-content h3 {
+  margin-bottom: 15px;
+  color: #0077b6;
+}
+
+#userEmail {
+  margin-bottom: 25px;
+  font-size: 0.9rem;
+}
+
+.slider-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #0077b6;
+  color: white;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+.logout-btn {
+  background: #d32f2f;
+}
+
+/* Header */
+.header {
+  background: var(--header-gradient);
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.header h1 {
+  font-size: 2.6rem;
+}
+
+.subtitle {
+  opacity: 0.9;
+}
+
+/* Alert & Advice */
+.alert-bar, .advice-bar {
+  margin: 20px auto;
+  padding: 15px;
+  width: 90%;
+  max-width: 1200px;
+  border-radius: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.alert-bar {
+  background: var(--alert-bg);
+  color: #664d03;
+}
+
+.alert-bar.hidden {
+  display: none;
+}
+
+.advice-bar {
+  background: var(--advice-bg);
+  color: #0f5132;
+}
+
+/* Cards */
+.cards-row {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  padding: 40px 20px;
+  flex-wrap: wrap;
+}
+
+.card {
+  min-width: 280px;
+  max-width: 380px;
+  padding: 30px;
+  border-radius: 25px;
+  text-align: center;
+}
+
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px var(--shadow);
+}
+
+.card h3 {
+  color: #0077b6;
+  margin-bottom: 15px;
+}
+
+.value {
+  font-size: 2.4rem;
+  font-weight: bold;
+  color: #00b4d8;
+}
+
+.badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+.badge-normal { background: #28a745; color: white; }
+.badge-high { background: #d32f2f; color: white; }
+.badge-medium { background: #ffc107; color: #333; }
+.badge-low { background: #ff9800; color: white; }
+.badge-full { background: #28a745; color: white; }
+
+/* Circular Progress */
+.circular-progress {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 20px auto;
+}
+
+.progress-bg {
+  fill: none;
+  stroke: #e0e0e0;
+  stroke-width: 10;
+}
+
+.progress-fill {
+  fill: none;
+  stroke: #00b4d8;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 314;
+  stroke-dashoffset: 314;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+/* Linear Progress */
+.progress-container {
+  height: 18px;
+  background: #e0e0e0;
+  border-radius: 10px;
+  margin-top: 15px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #0077b6, #00b4d8);
+  width: 0%;
+}
+
+.sub-label {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  background: var(--card-bg);
+  font-size: 0.9rem;
+  margin-top: 40px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cards-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+}

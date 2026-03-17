@@ -978,8 +978,10 @@ footer {
   box-shadow: 0 20px 60px rgba(0,119,182,0.14), 0 4px 16px rgba(0,150,199,0.08);
   width: 100%;
   max-width: 420px;
-  padding: 40px 36px 32px;
+  padding: 40px 36px 48px;
   animation: fadeSlideUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
+  position: relative;
+  z-index: 10;
 }
 
 @keyframes fadeSlideUp {
@@ -1018,8 +1020,11 @@ footer {
   background: rgba(0,150,199,0.08);
   border-radius: 14px;
   padding: 4px;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
   gap: 4px;
+  position: relative;
+  z-index: 15;
+  width: 100%;
 }
 .auth-tab {
   flex: 1;
@@ -1043,13 +1048,23 @@ footer {
 }
 
 /* ---------- Panels ---------- */
-.auth-panel { display: block; }
+.auth-panel {
+  display: block;
+  position: relative;
+  z-index: 11;
+}
 .auth-panel.hidden { display: none; }
+.auth-panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
 /* ---------- Form elements ---------- */
 .input-wrap {
   position: relative;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+  z-index: 12;
 }
 .input-icon {
   position: absolute;
@@ -1106,7 +1121,9 @@ footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
+  position: relative;
+  z-index: 12;
 }
 .remember-label {
   display: flex;
@@ -1167,7 +1184,8 @@ footer {
   font-weight: 700;
   letter-spacing: 0.2px;
   cursor: pointer;
-  margin-top: 4px;
+  margin-top: 8px;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1175,6 +1193,8 @@ footer {
   box-shadow: 0 4px 16px rgba(0,150,199,0.35);
   transition: opacity 0.2s, transform 0.15s;
   font-family: inherit;
+  position: relative;
+  z-index: 12;
 }
 .auth-btn:hover  { opacity: 0.92; }
 .auth-btn:active { transform: scale(0.98); }
@@ -1199,8 +1219,11 @@ footer {
   font-weight: 600;
   border-radius: 10px;
   padding: 10px 14px;
-  margin-top: 10px;
+  margin-top: 12px;
+  margin-bottom: 0;
   display: none;
+  position: relative;
+  z-index: 12;
 }
 .auth-error   { background: rgba(255,59,48,0.09);  color: #c0392b; }
 .auth-success { background: rgba(52,199,89,0.10);  color: #1a7a38; }
@@ -1231,7 +1254,12 @@ footer {
   text-align: center;
   font-size: 0.78rem;
   color: #90cce0;
-  margin-top: 22px;
+  margin-top: 28px;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 10;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0,150,199,0.12);
 }
 
 

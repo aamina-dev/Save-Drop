@@ -82,10 +82,13 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   background:
     radial-gradient(ellipse at 20% 30%, rgba(0,180,216,0.3) 0%, transparent 55%),
     radial-gradient(ellipse at 80% 70%, rgba(144,224,239,0.25) 0%, transparent 55%),
     linear-gradient(160deg, #daf3fb 0%, #caf0f8 100%);
+  padding: 24px;
+  width: 100%;
 }
 
 .login-container {
@@ -958,15 +961,6 @@ footer {
 /* ============================================================
    AUTH / LOGIN PAGE STYLES
    ============================================================ */
-.login-body {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(160deg, #daf3fb 0%, #caf0f8 45%, #f0fbff 100%);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
-  padding: 24px;
-}
 
 /* ---------- Container ---------- */
 .auth-container {
@@ -982,6 +976,10 @@ footer {
   animation: fadeSlideUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
   position: relative;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
 @keyframes fadeSlideUp {
@@ -993,6 +991,11 @@ footer {
 .auth-brand {
   text-align: center;
   margin-bottom: 28px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .auth-logo {
   font-size: 3rem;
@@ -1025,6 +1028,7 @@ footer {
   position: relative;
   z-index: 15;
   width: 100%;
+  flex-direction: row;
 }
 .auth-tab {
   flex: 1;
@@ -1052,12 +1056,14 @@ footer {
   display: block;
   position: relative;
   z-index: 11;
+  width: 100%;
 }
 .auth-panel.hidden { display: none; }
 .auth-panel form {
   display: flex;
   flex-direction: column;
   gap: 0;
+  width: 100%;
 }
 
 /* ---------- Form elements ---------- */

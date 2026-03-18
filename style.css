@@ -854,6 +854,8 @@ footer {
 
 /* ---------- Container ---------- */
 .auth-container {
+  display: flex;
+  flex-direction: column;
   background: rgba(255,255,255,0.72);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);

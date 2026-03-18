@@ -171,15 +171,10 @@ window.setTimeFrame = function(tf, btn) {
 };
 
 function getWaterSaved(e) {
-  // Check for water saved value in the log entry (multiple field name variants)
   const v = e.totalSavedWater || e.waterSaved || e.savedWater ||
-            e.total_saved     || e.water_saved || e.saved;
-  // Return null if no value exists - do NOT fall back to liveWaterSaved
-  // This ensures historical chart data remains immutable
-  if (v === null || v === undefined) {
-    return null;
-  }
-  return parseFloat(v.toFixed ? v.toFixed(2) : parseFloat(v).toFixed(2));
+            e.total_saved     || e.water_saved || e.saved || 0;
+  // Strictly use the value stored in the log entry — never fall back to live sensor
+  return parseFloat(Number(v).toFixed(2));
 }
 
 function applyTimeFrame() {
@@ -207,19 +202,14 @@ function applyTimeFrame() {
   const dayMap = {};
   filtered.forEach(e => {
     if (!e.timestamp) return;
-    const val = getWaterSaved(e);
-    // Skip entries without water saved data - preserve historical immutability
-    if (val === null) return;
-    
     const d   = new Date(e.timestamp * 1000);
     const key = d.getFullYear() + "-" +
                 String(d.getMonth() + 1).padStart(2, "0") + "-" +
                 String(d.getDate()).padStart(2, "0");
-    // Use LAST entry (by timestamp) for each day, not max value
-    if (!dayMap[key] || e.timestamp > (dayMap[key].ts || 0)) {
+    const val = getWaterSaved(e);
+    if (!dayMap[key] || val > dayMap[key].v) {
       dayMap[key] = {
         v: val,
-        ts: e.timestamp,
         t: currentTimeFrame === 'today'
           ? new Date(e.timestamp * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
           : d.toLocaleDateString(undefined, { day: "numeric", month: "short" })
@@ -237,8 +227,7 @@ onValue(ref(db, "sensors/totalSavedWater"), snap => {
   liveWaterSaved = parseFloat((snap.val() || 0).toFixed(2));
   waterSavedEl.textContent = liveWaterSaved + " Litres";
   progressBar.style.width  = Math.min((liveWaterSaved / TANK_CAPACITY_L) * 100, 100) + "%";
-  // NOTE: Chart rebuilding is now handled only by log changes, not sensor changes
-  // This prevents historical data from being affected by reset operations
+  // Do NOT re-render chart here — chart must use only stored log values
 });
 
 // ── LOGS: history table (last 10 individual readings) ─────────
@@ -260,10 +249,10 @@ onValue(query(ref(db, "logs"), limitToLast(10)), snap => {
       const ts = e.timestamp ? new Date(e.timestamp * 1000).toLocaleString() : "—";
       const fr = (e.flowRate   || e.flow_rate  || e.flow        || 0).toFixed(2);
       const tl = (e.tankLevel  || e.tank_level || e.level       || 0).toFixed(2);
-      // If log entry has no water saved field, fall back to the live sensor value
+      // Strictly use the value stored in the log entry
       const wsRaw = e.totalSavedWater || e.waterSaved || e.savedWater ||
                     e.total_saved     || e.water_saved || e.saved || 0;
-      const ws = (wsRaw || liveWaterSaved).toFixed(2);
+      const ws = Number(wsRaw).toFixed(2);
       return `<tr>
         <td>${ts}</td>
         <td>${fr} <span class="unit">L/min</span></td>

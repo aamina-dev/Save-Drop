@@ -124,7 +124,28 @@ function renderChart(history, chartId, xAxisId, yAxisId, liveValId, unit, barCla
 }
 
 // ── FLOW RATE ──────────────────────────────────────────────────
+const liveDot = document.querySelector(".live-dot");
+let connectionTimeout;
+
+function updateConnectionStatus() {
+  if (liveDot) {
+    liveDot.classList.remove("offline");
+    liveDot.title = "Device is online";
+  }
+  
+  clearTimeout(connectionTimeout);
+  
+  // ESP code updates every 5 seconds. If no update for 15s, mark offline.
+  connectionTimeout = setTimeout(() => {
+    if (liveDot) {
+      liveDot.classList.add("offline");
+      liveDot.title = "Device is offline";
+    }
+  }, 15000);
+}
+
 onValue(ref(db, "sensors/flowRate"), snap => {
+  updateConnectionStatus();
   const v = parseFloat((snap.val() || 0).toFixed(2));
   flowRateEl.textContent   = v + " L/min";
   const isHigh             = v > 5;

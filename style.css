@@ -379,6 +379,12 @@ body::after {
   100% { box-shadow: 0 0 0 0 rgba(45,198,83,0); }
 }
 
+.live-dot.offline {
+  background: var(--accent-red);
+  box-shadow: none;
+  animation: none;
+}
+
 /* Alert Bars */
 .alert-bar {
   margin: 20px auto;

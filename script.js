@@ -135,13 +135,13 @@ function updateConnectionStatus() {
   
   clearTimeout(connectionTimeout);
   
-  // ESP code updates every 5 seconds. If no update for 15s, mark offline.
+  // ESP code updates every 5 seconds. If no update for 6s, mark offline.
   connectionTimeout = setTimeout(() => {
     if (liveDot) {
       liveDot.classList.add("offline");
       liveDot.title = "Device is offline";
     }
-  }, 15000);
+  }, 6000);
 }
 
 onValue(ref(db, "sensors/flowRate"), snap => {

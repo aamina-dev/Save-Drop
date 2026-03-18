@@ -1,4 +1,4 @@
-﻿/* ========== RESET & BASE ========== */
+/* ========== RESET & BASE ========== */
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -76,20 +76,7 @@ body::after {
   100% { transform: translate(-20px, 40px) scale(0.96); }
 }
 
-/* ========== LOGIN PAGE ========== */
-.login-body {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  background:
-    radial-gradient(ellipse at 20% 30%, rgba(0,180,216,0.3) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 70%, rgba(144,224,239,0.25) 0%, transparent 55%),
-    linear-gradient(160deg, #daf3fb 0%, #caf0f8 100%);
-  padding: 24px;
-  width: 100%;
-}
+/* ========== LOGIN PAGE (old classes removed — see auth styles below) ========== */
 
 /* ========== DASHBOARD ========== */
 
@@ -855,6 +842,15 @@ footer {
 /* ============================================================
    AUTH / LOGIN PAGE STYLES
    ============================================================ */
+.login-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #daf3fb 0%, #caf0f8 45%, #f0fbff 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  padding: 24px;
+}
 
 /* ---------- Container ---------- */
 .auth-container {
@@ -866,16 +862,8 @@ footer {
   box-shadow: 0 20px 60px rgba(0,119,182,0.14), 0 4px 16px rgba(0,150,199,0.08);
   width: 100%;
   max-width: 420px;
-  padding: 40px 36px 48px;
+  padding: 40px 36px 32px;
   animation: fadeSlideUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
-  position: relative;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  overflow: hidden;
-  box-sizing: border-box;
 }
 
 @keyframes fadeSlideUp {
@@ -887,11 +875,6 @@ footer {
 .auth-brand {
   text-align: center;
   margin-bottom: 28px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
 }
 .auth-logo {
   font-size: 3rem;
@@ -919,12 +902,8 @@ footer {
   background: rgba(0,150,199,0.08);
   border-radius: 14px;
   padding: 4px;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   gap: 4px;
-  position: relative;
-  z-index: 15;
-  width: 100%;
-  flex-direction: row;
 }
 .auth-tab {
   flex: 1;
@@ -948,52 +927,13 @@ footer {
 }
 
 /* ---------- Panels ---------- */
-.auth-panel {
-  display: block;
-  position: relative;
-  z-index: 11;
-  width: 100%;
-  box-sizing: border-box;
-}
+.auth-panel { display: block; }
 .auth-panel.hidden { display: none; }
-.auth-panel form {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Auth-specific input-group to override dashboard styles */
-.auth-panel .input-group {
-  margin-bottom: 18px;
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-.auth-panel .input-group label {
-  font-weight: 600;
-  font-size: 0.8rem;
-  letter-spacing: 0.5px;
-  color: #0096C7;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  display: block;
-}
 
 /* ---------- Form elements ---------- */
 .input-wrap {
   position: relative;
-  margin-bottom: 16px;
-  z-index: 12;
-  width: 100%;
-  box-sizing: border-box;
-}
-.auth-panel .input-wrap {
-  margin-bottom: 16px;
-  width: 100%;
-  box-sizing: border-box;
+  margin-bottom: 14px;
 }
 .input-icon {
   position: absolute;
@@ -1005,19 +945,6 @@ footer {
   line-height: 1;
 }
 .input-wrap input {
-  width: 100%;
-  padding: 13px 16px;
-  border: 1.5px solid rgba(0,150,199,0.25);
-  border-radius: 13px;
-  background: rgba(255,255,255,0.78);
-  color: #03045E;
-  font-size: 0.92rem;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  font-family: inherit;
-}
-.auth-panel .input-wrap input {
   width: 100%;
   padding: 13px 16px;
   border: 1.5px solid rgba(0,150,199,0.25);
@@ -1063,11 +990,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 22px;
-  position: relative;
-  z-index: 12;
-  width: 100%;
-  box-sizing: border-box;
+  margin-bottom: 18px;
 }
 .remember-label {
   display: flex;
@@ -1128,8 +1051,7 @@ footer {
   font-weight: 700;
   letter-spacing: 0.2px;
   cursor: pointer;
-  margin-top: 8px;
-  margin-bottom: 0;
+  margin-top: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1137,9 +1059,6 @@ footer {
   box-shadow: 0 4px 16px rgba(0,150,199,0.35);
   transition: opacity 0.2s, transform 0.15s;
   font-family: inherit;
-  position: relative;
-  z-index: 12;
-  box-sizing: border-box;
 }
 .auth-btn:hover  { opacity: 0.92; }
 .auth-btn:active { transform: scale(0.98); }
@@ -1164,13 +1083,8 @@ footer {
   font-weight: 600;
   border-radius: 10px;
   padding: 10px 14px;
-  margin-top: 12px;
-  margin-bottom: 0;
+  margin-top: 10px;
   display: none;
-  position: relative;
-  z-index: 12;
-  width: 100%;
-  box-sizing: border-box;
 }
 .auth-error   { background: rgba(255,59,48,0.09);  color: #c0392b; }
 .auth-success { background: rgba(52,199,89,0.10);  color: #1a7a38; }
@@ -1201,12 +1115,7 @@ footer {
   text-align: center;
   font-size: 0.78rem;
   color: #90cce0;
-  margin-top: 28px;
-  margin-bottom: 0;
-  position: relative;
-  z-index: 10;
-  padding-top: 16px;
-  border-top: 1px solid rgba(0,150,199,0.12);
+  margin-top: 22px;
 }
 
 

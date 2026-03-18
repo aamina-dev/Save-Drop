@@ -101,6 +101,18 @@ void setup() {
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
 
+  /* ----- RESTORE TOTAL LITRES FROM FIREBASE ----- */
+
+  delay(1000); // allow Firebase connection to stabilise
+
+  if (Firebase.RTDB.getFloat(&fbdo, "/sensors/totalSavedWater")) {
+    totalLitres = fbdo.floatData();
+    Serial.print("Restored totalLitres from Firebase: ");
+    Serial.println(totalLitres);
+  } else {
+    Serial.println("No previous totalSavedWater found, starting from 0");
+  }
+
   /* ----- FLOW SENSOR SETUP ----- */
 
   pinMode(FLOW_PIN, INPUT_PULLUP);

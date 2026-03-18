@@ -171,8 +171,9 @@ window.setTimeFrame = function(tf, btn) {
 };
 
 function getWaterSaved(e) {
-  const v = e.totalSavedWater || e.waterSaved || e.savedWater ||
-            e.total_saved     || e.water_saved || e.saved || 0;
+  const v = e.volume || e.totalLitres || e.totalSavedWater ||
+            e.waterSaved || e.savedWater || e.total_saved ||
+            e.water_saved || e.saved || 0;
   // Strictly use the value stored in the log entry — never fall back to live sensor
   return parseFloat(Number(v).toFixed(2));
 }
@@ -250,8 +251,9 @@ onValue(query(ref(db, "logs"), limitToLast(10)), snap => {
       const fr = (e.flowRate   || e.flow_rate  || e.flow        || 0).toFixed(2);
       const tl = (e.tankLevel  || e.tank_level || e.level       || 0).toFixed(2);
       // Strictly use the value stored in the log entry
-      const wsRaw = e.totalSavedWater || e.waterSaved || e.savedWater ||
-                    e.total_saved     || e.water_saved || e.saved || 0;
+      const wsRaw = e.volume || e.totalLitres || e.totalSavedWater ||
+                    e.waterSaved || e.savedWater || e.total_saved ||
+                    e.water_saved || e.saved || 0;
       const ws = Number(wsRaw).toFixed(2);
       return `<tr>
         <td>${ts}</td>

@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, query, limitToLast, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCdcE6ASFSi8ZHn82q741xUWUO1cp7tK3g",
@@ -13,6 +14,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
+const auth = getAuth(app);
 
 // ── DOM elements ───────────────────────────────────────────────
 const profileIcon    = document.getElementById("profileIcon");
@@ -122,6 +124,12 @@ function renderChart(history, chartId, xAxisId, yAxisId, liveValId, unit, barCla
     xAxis.appendChild(tick);
   });
 }
+
+// ── FIREBASE LISTENERS (Only attach when logged in) ────────────
+let listenersAttached = false;
+onAuthStateChanged(auth, user => {
+  if (!user || listenersAttached) return;
+  listenersAttached = true;
 
 // ── FLOW RATE ──────────────────────────────────────────────────
 const liveDot = document.querySelector(".live-dot");
@@ -293,5 +301,7 @@ onValue(query(ref(db, "logs"), limitToLast(500)), snap => {
   allLogEntries = Object.values(data).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
   applyTimeFrame();
 });
+
+}); // End of onAuthStateChanged
 
 // ── LOGS: daily bar chart ─── driven by applyTimeFrame() above ─

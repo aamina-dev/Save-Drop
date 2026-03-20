@@ -49,6 +49,7 @@ float flowCalibration = 48.5;
 /* ---------------- TIME VARIABLES ---------------- */
 
 unsigned long previousMillis = 0;
+unsigned long lastLogMillis = 0;
 
 /* ---------------- FLOW SENSOR INTERRUPT ---------------- */
 
@@ -238,20 +239,26 @@ void loop() {
 
       Firebase.RTDB.updateNode(&fbdo, "/sensors", &sensorJson);
 
-      /* -------- LOG ENTRY -------- */
+      /* -------- LOG ENTRY (Smart Logging) -------- */
+      // Only log if water is flowing, OR every 5 minutes (300,000 ms) as a heartbeat
+      if (flowRate > 0 || (currentMillis - lastLogMillis >= 300000)) {
+        
+        unsigned long timestamp = time(nullptr);
 
-      unsigned long timestamp = time(nullptr);
+        FirebaseJson logJson;
+        logJson.set("deviceKey", DEVICE_SECRET);
+        logJson.set("timestamp", timestamp);
+        logJson.set("flowRate", flowRate);
+        logJson.set("tankLevel", percentage);
+        logJson.set("volume", totalLitres);
 
-      FirebaseJson logJson;
-      logJson.set("deviceKey", DEVICE_SECRET);
-      logJson.set("timestamp", timestamp);
-      logJson.set("flowRate", flowRate);
-      logJson.set("tankLevel", percentage);
-      logJson.set("volume", totalLitres);
+        Firebase.RTDB.pushJSON(&fbdo, "/logs", &logJson);
+        
+        lastLogMillis = currentMillis;
+        Serial.println("Historical Log Pushed");
+      }
 
-      Firebase.RTDB.pushJSON(&fbdo, "/logs", &logJson);
-
-      Serial.println("Firebase Updated");
+      Serial.println("Firebase Sensors Updated");
     }
 
     Serial.println("-------------------------");

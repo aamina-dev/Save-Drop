@@ -295,7 +295,7 @@ onValue(query(ref(db, "logs"), limitToLast(10)), snap => {
 });
 
 // ── LOGS: chart + card value — full history for time-frame filter ─
-onValue(query(ref(db, "logs"), limitToLast(500)), snap => {
+onValue(query(ref(db, "logs"), limitToLast(3000)), snap => {
   const data = snap.val();
   if (!data) return;
   allLogEntries = Object.values(data).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));

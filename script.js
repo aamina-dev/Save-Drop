@@ -1,3 +1,8 @@
+// =========================================================================
+// SCRIPT.JS: The main "Brain" of the Save-Drop Dashboard
+// This file handles reading live data from Firebase to update the website UI
+// =========================================================================
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, query, limitToLast, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -152,8 +157,12 @@ function updateConnectionStatus() {
   }, 6000);
 }
 
+/* --------------------------------------------------------------------------
+   FIREBASE LISTENER: FLOW RATE
+   onValue() automatically runs EVERY TIME the value in Firebase changes. 
+-------------------------------------------------------------------------- */
 onValue(ref(db, "sensors/flowRate"), snap => {
-  updateConnectionStatus();
+  updateConnectionStatus(); // Reset the watchdog timer since we got data!
   const v = parseFloat((snap.val() || 0).toFixed(2));
   flowRateEl.textContent   = v + " L/min";
   const isHigh             = v > 5;
@@ -161,10 +170,14 @@ onValue(ref(db, "sensors/flowRate"), snap => {
   flowStatusEl.className   = "badge " + (isHigh ? "badge-high" : "badge-normal");
 });
 
-// ── TANK LEVEL ─────────────────────────────────────────────────
+/* --------------------------------------------------------------------------
+   FIREBASE LISTENER: TANK LEVEL
+-------------------------------------------------------------------------- */
 onValue(ref(db, "sensors/tankLevel"), snap => {
   const v = parseFloat((snap.val() || 0).toFixed(2));
   tankLevelEl.textContent = v + "%";
+  
+  // Update the circular SVG stroke to visually show how full the tank is
   progressCircle.style.strokeDashoffset = 326.7 - (v / 100) * 326.7;
 
   // Tank status badge
@@ -184,8 +197,7 @@ onValue(ref(db, "sensors/tankLevel"), snap => {
   else         alertFull.classList.add("hidden");
 });
 
-// ── TOTAL SAVED WATER ──────────────────────────────────────────
-const TANK_CAPACITY_L = 0.75; // 750 ml tanker
+
 
 // Stores all log entries for re-filtering by time frame
 let allLogEntries    = [];
@@ -253,14 +265,22 @@ function applyTimeFrame() {
   renderChart(chartData, "savedChart", "savedXAxis", "savedYAxis", "savedChartVal", "L", "bar-saved");
 }
 
+// ── TOTAL SAVED WATER ──────────────────────────────────────────
+const TANK_CAPACITY_L = 0.75; // 750 ml tanker capacity used for the progress bar
+
+/* --------------------------------------------------------------------------
+   FIREBASE LISTENER: TOTAL SAVED WATER
+-------------------------------------------------------------------------- */
 onValue(ref(db, "sensors/totalSavedWater"), snap => {
   liveWaterSaved = parseFloat((snap.val() || 0).toFixed(2));
   waterSavedEl.textContent = liveWaterSaved + " Litres";
   progressBar.style.width  = Math.min((liveWaterSaved / TANK_CAPACITY_L) * 100, 100) + "%";
-  // Do NOT re-render chart here — chart must use only stored log values
 });
 
-// ── LOGS: history table (last 10 individual readings) ─────────
+/* --------------------------------------------------------------------------
+   FIREBASE LISTENER: LOGS (TABLE)
+   Limits to the last 10 entries so the table doesn't get flooded.
+-------------------------------------------------------------------------- */
 onValue(query(ref(db, "logs"), limitToLast(10)), snap => {
   const data = snap.val();
   if (!data) {
@@ -294,10 +314,15 @@ onValue(query(ref(db, "logs"), limitToLast(10)), snap => {
   }
 });
 
-// ── LOGS: chart + card value — full history for time-frame filter ─
+/* --------------------------------------------------------------------------
+   FIREBASE LISTENER: LOGS (CHART HISTORY)
+   Grabs the last 3000 logs so we have enough data to calculate the 
+   "Last 8 Days" bar chart accurately.
+-------------------------------------------------------------------------- */
 onValue(query(ref(db, "logs"), limitToLast(3000)), snap => {
   const data = snap.val();
   if (!data) return;
+  // Convert Firebase JSON object into a sorted array based on timestamps
   allLogEntries = Object.values(data).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
   applyTimeFrame();
 });

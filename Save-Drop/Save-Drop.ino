@@ -129,9 +129,13 @@ void setup() {
 
 void loop() {
 
-  if (millis() - previousMillis >= 5000) {
+  unsigned long currentMillis = millis();
 
-    previousMillis = millis();
+  if (currentMillis - previousMillis >= 5000) {
+
+    // Calculate EXACT time elapsed since last loop to prevent drift
+    unsigned long timeElapsed = currentMillis - previousMillis;
+    previousMillis = currentMillis;
 
     /* -------- FLOW SENSOR CALCULATION -------- */
 
@@ -139,10 +143,14 @@ void loop() {
 
     if(flowRate < 0.02) flowRate = 0;   // noise filter
 
-    float litresThisCycle = flowRate / 60.0 * 5.0;
+    // flowRate is L/min. So L/ms = flowRate / 60000.0. Use exact time Elapsed.
+    float litresThisCycle = (flowRate / 60000.0) * timeElapsed;
     totalLitres += litresThisCycle;
 
+    // Zero out the interrupt variable safely
+    noInterrupts();
     pulseCount = 0;
+    interrupts();
 
     /* -------- ULTRASONIC AVERAGE (STABLE) -------- */
 

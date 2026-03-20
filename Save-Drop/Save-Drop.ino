@@ -39,9 +39,9 @@ float percentage;
 
 /* ---------------- CALIBRATION VALUES ---------------- */
 
-// calibrated from your measurements
-float emptyDistance = 12.4;
-float fullDistance  = 2.6;
+// calibrated from your measurements (Tank is ~12.10 cm deep)
+float emptyDistance = 12.1;
+float fullDistance  = 2.5; // (Keep ~2.5cm deadzone for HC-SR04 sensor)
 
 // calibrated flow factor
 float flowCalibration = 48.5;

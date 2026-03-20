@@ -406,7 +406,6 @@ body::after {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.alert-bar { }
 .alert-bar.hidden { display: none; }
 
 .alert-low {

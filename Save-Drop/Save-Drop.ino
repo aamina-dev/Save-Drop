@@ -166,7 +166,8 @@ void loop() {
 
       digitalWrite(TRIG_PIN, LOW);
 
-      duration = pulseIn(ECHO_PIN, HIGH);
+      // Add 30ms timeout to prevent 1-second blocking if sensor fails/is blocked
+      duration = pulseIn(ECHO_PIN, HIGH, 30000);
 
       float d = duration * 0.034 / 2;
 

@@ -11,6 +11,7 @@
 
 #define API_KEY "AIzaSyCdcE6ASFSi8ZHn82q741xUWUO1cp7tK3g"
 #define DATABASE_URL "https://save-drop-default-rtdb.firebaseio.com/"
+#define DEVICE_SECRET "Savedrop_Secure"
 
 /* ---------------- FIREBASE OBJECTS ---------------- */
 
@@ -218,23 +219,28 @@ void loop() {
 
     if (Firebase.ready()) {
 
-      Firebase.RTDB.setFloat(&fbdo, "/sensors/flowRate", flowRate);
-      Firebase.RTDB.setFloat(&fbdo, "/sensors/tankLevel", percentage);
-      Firebase.RTDB.setFloat(&fbdo, "/sensors/totalSavedWater", totalLitres);
-      Firebase.RTDB.setString(&fbdo, "/sensors/status", status);
+      /* -------- SENSOR UPDATE OPTIMIZED -------- */
+      FirebaseJson sensorJson;
+      sensorJson.set("deviceKey", DEVICE_SECRET);
+      sensorJson.set("flowRate", flowRate);
+      sensorJson.set("tankLevel", percentage);
+      sensorJson.set("totalSavedWater", totalLitres);
+      sensorJson.set("status", status);
+
+      Firebase.RTDB.updateNode(&fbdo, "/sensors", &sensorJson);
 
       /* -------- LOG ENTRY -------- */
 
       unsigned long timestamp = time(nullptr);
 
-      FirebaseJson json;
+      FirebaseJson logJson;
+      logJson.set("deviceKey", DEVICE_SECRET);
+      logJson.set("timestamp", timestamp);
+      logJson.set("flowRate", flowRate);
+      logJson.set("tankLevel", percentage);
+      logJson.set("volume", totalLitres);
 
-      json.set("timestamp", timestamp);
-      json.set("flowRate", flowRate);
-      json.set("tankLevel", percentage);
-      json.set("volume", totalLitres);
-
-      Firebase.RTDB.pushJSON(&fbdo, "/logs", &json);
+      Firebase.RTDB.pushJSON(&fbdo, "/logs", &logJson);
 
       Serial.println("Firebase Updated");
     }

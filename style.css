@@ -668,24 +668,6 @@ body::after {
   letter-spacing: -0.5px;
 }
 
-/* ========== LINEAR PROGRESS ========== */
-.progress-container {
-  height: 8px;
-  background: rgba(0, 150, 200, 0.12);
-  border-radius: var(--radius-pill);
-  margin-top: 18px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent-teal), var(--accent-aqua));
-  width: 0%;
-  border-radius: var(--radius-pill);
-  transition: width 1s var(--transition-smooth);
-  box-shadow: 0 0 10px rgba(0, 180, 216, 0.4);
-}
-
 .sub-label {
   font-size: 0.82rem;
   color: var(--text-secondary);

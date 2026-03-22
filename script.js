@@ -31,7 +31,7 @@ const tankLevelEl = document.getElementById("tankLevel");
 const tankStatusEl = document.getElementById("tankStatus");
 const progressCircle = document.getElementById("progressCircle");
 const totalWaterEl = document.getElementById("totalWater");
-const progressBar = document.getElementById("progressBar");
+const usageInsightEl = document.getElementById("usageInsight");
 const alertLow = document.getElementById("alertLow");
 const alertFull = document.getElementById("alertFull");
 const lastUpdatedEl = document.getElementById("lastUpdated");
@@ -340,12 +340,23 @@ onAuthStateChanged(auth, user => {
   onValue(ref(db, "sensors/totalWater"), snap => {
     const v = snap.val() || 0;
     liveWaterUsed = v;
+    
+    // 1. Update main value with Unit
     totalWaterEl.innerHTML = `${parseFloat(v).toFixed(2)} <span style="font-size:1.1rem;opacity:.6">L</span>`;
 
-    // Progress bar logic 
-    const goal = 10.0; // Let's set a 10L daily goal for the visual bar
-    const progress = Math.min((v / goal) * 100, 100);
-    progressBar.style.width = progress + "%";
+    // 2. Dynamic Usage Insight
+    if (usageInsightEl) {
+      if (v < 2.0) {
+        usageInsightEl.innerHTML = "Low usage 💧";
+        usageInsightEl.style.color = "#0096C7"; // Normal Blue
+      } else if (v < 5.0) {
+        usageInsightEl.innerHTML = "Moderate usage 💧";
+        usageInsightEl.style.color = "#9a4208"; // Orange-ish
+      } else {
+        usageInsightEl.innerHTML = "High usage ⚠️";
+        usageInsightEl.style.color = "#b31b24"; // Red alert
+      }
+    }
   });
 
   /* --------------------------------------------------------------------------

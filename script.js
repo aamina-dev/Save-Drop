@@ -37,6 +37,7 @@ const alertFull = document.getElementById("alertFull");
 const lastUpdatedEl = document.getElementById("lastUpdated");
 const historyBody = document.getElementById("historyBody");
 const resetWaterBtn = document.getElementById("resetWaterBtn");
+const downloadCsvBtn = document.getElementById("downloadCsvBtn");
 
 // Profile slider
 profileIcon.onclick = () => userSlider.classList.toggle("active");
@@ -55,6 +56,61 @@ if (resetWaterBtn) {
     }
   };
 }
+
+// Download History as CSV
+if (downloadCsvBtn) {
+  downloadCsvBtn.onclick = () => {
+    // 1. Prepare CSV Header
+    let csvContent = "Date/Time,Flow Rate (L/min),Tank Level (%),Water Saved (L)\n";
+
+    // 2. Get the currently filtered data (re-using the logic from applyTimeFrame)
+    // We already have 'allLogEntries' which is updated by Firebase.
+    // We can filter it again here or use a helper. 
+    // To keep it simple and consistent with the UI, we'll re-filter:
+    const now = new Date();
+    const todayKey = now.getFullYear() + "-" +
+      String(now.getMonth() + 1).padStart(2, "0") + "-" +
+      String(now.getDate()).padStart(2, "0");
+    const weekAgoTs = (Date.now() / 1000) - 7 * 86400;
+
+    let exportData = allLogEntries;
+    if (currentTimeFrame === 'today') {
+      exportData = allLogEntries.filter(e => {
+        if (!e.timestamp) return false;
+        const d = new Date(e.timestamp * 1000);
+        const k = d.getFullYear() + "-" +
+          String(d.getMonth() + 1).padStart(2, "0") + "-" +
+          String(d.getDate()).padStart(2, "0");
+        return k === todayKey;
+      });
+    } else if (currentTimeFrame === 'week') {
+      exportData = allLogEntries.filter(e => e.timestamp && e.timestamp >= weekAgoTs);
+    }
+
+    // 3. Convert entries to CSV rows
+    // We reverse it to show newest first, just like the table
+    [...exportData].reverse().forEach(e => {
+      const ts = e.timestamp ? new Date(e.timestamp * 1000).toLocaleString().replace(/,/g, "") : "—";
+      const fr = (e.flowRate || e.flow_rate || e.flow || 0).toFixed(2);
+      const tl = (e.tankLevel || e.tank_level || e.level || 0).toFixed(2);
+      const ws = getWaterSaved(e).toFixed(2);
+      csvContent += `${ts},${fr},${tl},${ws}\n`;
+    });
+
+    // 4. Trigger Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.setAttribute("href", url);
+    link.setAttribute("download", `SaveDrop_History_${dateStr}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+}
+
 // Close on backdrop click
 document.addEventListener("click", e => {
   if (userSlider.classList.contains("active") &&

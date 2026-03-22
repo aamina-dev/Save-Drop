@@ -582,9 +582,13 @@ body::after {
 .unit {
   font-size: 1.15rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #0077B6; /* Solid Blue */
+  -webkit-text-fill-color: #0077B6; /* Override transparency */
+  background-clip: unset; 
+  -webkit-background-clip: unset;
   opacity: 0.85;
   margin-left: 4px;
+  vertical-align: baseline;
 }
 
 .badge {

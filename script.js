@@ -45,11 +45,15 @@ const lastUpdatedEl = document.getElementById("lastUpdated");
 const historyBody = document.getElementById("historyBody");
 const resetWaterBtn = document.getElementById("resetWaterBtn");
 const downloadCsvBtn = document.getElementById("downloadCsvBtn");
+const estimatedCostEl = document.getElementById("estimatedCost");
+const costStatusEl = document.getElementById("costStatus");
 
 // --- System State ---
 let allLogEntries = [];        // Stores permanent historical records from cloud
 let currentTimeFrame = 'today'; // Controls current chart view (Today/Week/All)
 let liveWaterUsed = 0;         // Latest consumption value from live sensor
+
+const WATER_RATE_PER_LITRE = 0.15; // Set your water rate here (e.g. 0.15 Rs per Litre)
 
 /**
  * HELPER: Extracts water consumption from any valid data key
@@ -275,7 +279,27 @@ onAuthStateChanged(auth, user => {
     liveWaterUsed = v;
     totalWaterEl.innerHTML = `${parseFloat(v).toFixed(2)}<span class="unit">L</span>`;
 
-    // Dynamic Consumption Insights (Professional Grade Feedback)
+    // 1. Calculate Estimated Cost
+    const cost = v * WATER_RATE_PER_LITRE;
+    if (estimatedCostEl) {
+      estimatedCostEl.innerHTML = `<span class="unit">₹</span>${cost.toFixed(2)}`;
+    }
+
+    // 2. Cost Budgeting Status
+    if (costStatusEl) {
+      if (cost < 5) {
+        costStatusEl.innerHTML = "Within Budget";
+        costStatusEl.className = "badge badge-normal";
+      } else if (cost < 15) {
+        costStatusEl.innerHTML = "Moderate Cost";
+        costStatusEl.className = "badge badge-medium";
+      } else {
+        costStatusEl.innerHTML = "High Expense 💸";
+        costStatusEl.className = "badge badge-high";
+      }
+    }
+
+    // 3. Dynamic Consumption Insights (Professional Grade Feedback)
     if (usageInsightEl) {
       if (v < 2.0) { usageInsightEl.innerHTML = "Low usage 💧"; usageInsightEl.className = "badge badge-normal"; }
       else if (v < 5.0) { usageInsightEl.innerHTML = "Moderate usage 💧"; usageInsightEl.className = "badge badge-medium"; }

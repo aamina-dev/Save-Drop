@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,14 +8,15 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
   <!-- Hidden SVG gradient defs for circular progress -->
   <svg width="0" height="0" style="position:absolute">
     <defs>
       <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%"   stop-color="#0077B6"/>
-        <stop offset="100%" stop-color="#00B4D8"/>
+        <stop offset="0%" stop-color="#0077B6" />
+        <stop offset="100%" stop-color="#00B4D8" />
       </linearGradient>
     </defs>
   </svg>
@@ -28,7 +30,9 @@
     <!-- Avatar -->
     <div class="slider-avatar">
       <div class="slider-avatar-ring">
-        <img src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;rect width='100' height='100' fill='%23daf3fb'/&gt;&lt;circle cx='50' cy='38' r='18' fill='%230077b6'/&gt;&lt;path d='M50 64c-16.6 0-32 10.4-36 26 .6 1.8 1.4 3.4 2.4 5h67.2c1-1.6 1.8-3.2 2.4-5-4-15.6-19.4-26-36-26z' fill='%230077b6'/&gt;&lt;/svg&gt;" alt="Profile">
+        <img
+          src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;rect width='100' height='100' fill='%23daf3fb'/&gt;&lt;circle cx='50' cy='38' r='18' fill='%230077b6'/&gt;&lt;path d='M50 64c-16.6 0-32 10.4-36 26 .6 1.8 1.4 3.4 2.4 5h67.2c1-1.6 1.8-3.2 2.4-5-4-15.6-19.4-26-36-26z' fill='%230077b6'/&gt;&lt;/svg&gt;"
+          alt="Profile">
       </div>
       <div class="slider-avatar-info">
         <p class="slider-name">My Account</p>
@@ -65,7 +69,9 @@
 
   <!-- Profile Icon -->
   <div class="profile-icon" id="profileIcon">
-    <img src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;rect width='100' height='100' fill='%23daf3fb'/&gt;&lt;circle cx='50' cy='38' r='18' fill='%230077b6'/&gt;&lt;path d='M50 64c-16.6 0-32 10.4-36 26 .6 1.8 1.4 3.4 2.4 5h67.2c1-1.6 1.8-3.2 2.4-5-4-15.6-19.4-26-36-26z' fill='%230077b6'/&gt;&lt;/svg&gt;" alt="Profile">
+    <img
+      src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;rect width='100' height='100' fill='%23daf3fb'/&gt;&lt;circle cx='50' cy='38' r='18' fill='%230077b6'/&gt;&lt;path d='M50 64c-16.6 0-32 10.4-36 26 .6 1.8 1.4 3.4 2.4 5h67.2c1-1.6 1.8-3.2 2.4-5-4-15.6-19.4-26-36-26z' fill='%230077b6'/&gt;&lt;/svg&gt;"
+      alt="Profile">
   </div>
 
   <!-- Header -->
@@ -82,13 +88,13 @@
     <!-- Animated Waves -->
     <div class="waves-container">
       <svg class="wave wave1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
-        <path d="M0,40 C180,80 360,0 540,40 C720,80 900,0 1080,40 C1260,80 1350,20 1440,40 L1440,80 L0,80 Z"/>
+        <path d="M0,40 C180,80 360,0 540,40 C720,80 900,0 1080,40 C1260,80 1350,20 1440,40 L1440,80 L0,80 Z" />
       </svg>
       <svg class="wave wave2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
-        <path d="M0,50 C200,10 400,70 600,40 C800,10 1000,70 1200,40 C1320,20 1380,60 1440,50 L1440,80 L0,80 Z"/>
+        <path d="M0,50 C200,10 400,70 600,40 C800,10 1000,70 1200,40 C1320,20 1380,60 1440,50 L1440,80 L0,80 Z" />
       </svg>
       <svg class="wave wave3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
-        <path d="M0,60 C240,20 480,80 720,50 C960,20 1200,70 1440,55 L1440,80 L0,80 Z"/>
+        <path d="M0,60 C240,20 480,80 720,50 C960,20 1200,70 1440,55 L1440,80 L0,80 Z" />
       </svg>
     </div>
   </header>
@@ -119,9 +125,8 @@
       <div class="circular-progress">
         <svg width="130" height="130" viewBox="0 0 130 130">
           <circle cx="65" cy="65" r="52" class="progress-bg"></circle>
-          <circle id="progressCircle" cx="65" cy="65" r="52"
-                  class="progress-fill"
-                  style="stroke-dasharray:326.7;stroke-dashoffset:326.7"></circle>
+          <circle id="progressCircle" cx="65" cy="65" r="52" class="progress-fill"
+            style="stroke-dasharray:326.7;stroke-dashoffset:326.7"></circle>
         </svg>
         <p class="progress-text" id="tankLevel">0%</p>
       </div>
@@ -190,7 +195,9 @@
           </tr>
         </thead>
         <tbody id="historyBody">
-          <tr><td colspan="4" class="history-empty">Loading data&hellip;</td></tr>
+          <tr>
+            <td colspan="4" class="history-empty">Loading data&hellip;</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -204,4 +211,5 @@
   <script type="module" src="auth.js"></script>
   <script type="module" src="script.js"></script>
 </body>
+
 </html>

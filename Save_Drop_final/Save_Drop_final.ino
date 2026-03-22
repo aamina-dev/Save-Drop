@@ -30,7 +30,7 @@ FirebaseConfig config;
 // It is marked 'volatile' because it changes rapidly in the background interrupt function.
 volatile int pulseCount = 0;
 float flowRate = 0;       // Liters per minute
-float totalLitres = 0;    // Total water that has passed through the pipe
+float totalWater = 0;    // Total water that has passed through the pipe (Consumption)
 
 /* ---------------- TANK VARIABLES ---------------- */
 long duration;            // Time it takes for the ultrasonic sound to bounce back
@@ -97,12 +97,12 @@ void setup() {
   /* ----- RESTORE PREVIOUS WATER SAVED ----- */
   // If the NodeMCU loses power and restarts, we fetch the last known totalLitres from Firebase so we don't start at 0 again.
   delay(1000); 
-  if (Firebase.RTDB.getFloat(&fbdo, "/sensors/totalSavedWater")) {
-    totalLitres = fbdo.floatData();
-    Serial.print("Restored totalLitres from Firebase: ");
-    Serial.println(totalLitres);
+  if (Firebase.RTDB.getFloat(&fbdo, "/sensors/totalWater")) {
+    totalWater = fbdo.floatData();
+    Serial.print("Restored totalWater from Firebase: ");
+    Serial.println(totalWater);
   } else {
-    Serial.println("No previous totalSavedWater found, starting from 0");
+    Serial.println("No previous totalWater found, starting from 0");
   }
 
   /* ----- SENSOR PIN SETUP ----- */
@@ -140,7 +140,7 @@ void loop() {
     float litresThisCycle = (flowRate / 60000.0) * timeElapsed;
     
     // Add it to the grand total
-    totalLitres += litresThisCycle;
+    totalWater += litresThisCycle;
 
     // Safely pause the background interrupts for a split second while we reset the count to 0, 
     // to guarantee we don't delete a pulse while the CPU is doing math.
@@ -199,7 +199,7 @@ void loop() {
     Serial.print("Distance: "); Serial.print(distance); Serial.println(" cm");
     Serial.print("Flow Rate: "); Serial.print(flowRate); Serial.println(" L/min");
     Serial.print("Tank Level: "); Serial.print(percentage); Serial.println(" %");
-    Serial.print("Total Water: "); Serial.print(totalLitres); Serial.println(" L");
+    Serial.print("Total Water: "); Serial.print(totalWater); Serial.println(" L");
     Serial.print("Status: "); Serial.println(status);
 
     /* -------- 6. UPLOAD TO FIREBASE -------- */
@@ -211,7 +211,7 @@ void loop() {
       sensorJson.set("deviceKey", DEVICE_SECRET);
       sensorJson.set("flowRate", flowRate);
       sensorJson.set("tankLevel", percentage);
-      sensorJson.set("totalSavedWater", totalLitres);
+      sensorJson.set("totalWater", totalWater);
       sensorJson.set("status", status);
 
       // Blast it to the "/sensors" folder in one go (very fast and uses less internet).
@@ -229,7 +229,7 @@ void loop() {
         logJson.set("timestamp", timestamp);
         logJson.set("flowRate", flowRate);
         logJson.set("tankLevel", percentage);
-        logJson.set("volume", totalLitres);
+        logJson.set("totalWater", totalWater);
 
         // 'pushJSON' creates a new unique folder (like /logs/-Oxy123) to permanently save this moment in history.
         Firebase.RTDB.pushJSON(&fbdo, "/logs", &logJson);

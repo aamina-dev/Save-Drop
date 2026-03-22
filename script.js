@@ -30,7 +30,7 @@ const flowStatusEl = document.getElementById("flowStatus");
 const tankLevelEl = document.getElementById("tankLevel");
 const tankStatusEl = document.getElementById("tankStatus");
 const progressCircle = document.getElementById("progressCircle");
-const waterSavedEl = document.getElementById("waterSaved");
+const totalWaterEl = document.getElementById("totalWater");
 const progressBar = document.getElementById("progressBar");
 const alertLow = document.getElementById("alertLow");
 const alertFull = document.getElementById("alertFull");
@@ -44,8 +44,8 @@ let allLogEntries = [];
 let currentTimeFrame = 'today';
 let liveWaterSaved = 0; // cached from sensors/totalSavedWater
 
-function getWaterSaved(e) {
-  const v = e.volume || e.totalLitres || e.totalSavedWater ||
+function getWaterUsed(e) {
+  const v = e.totalWater || e.volume || e.totalLitres || e.totalSavedWater ||
     e.waterSaved || e.savedWater || e.total_saved ||
     e.water_saved || e.saved || 0;
   // Strictly use the value stored in the log entry — never fall back to live sensor
@@ -59,10 +59,10 @@ sliderClose.onclick = () => userSlider.classList.remove("active");
 // Reset Total Water Saved
 if (resetWaterBtn) {
   resetWaterBtn.onclick = async () => {
-    if (!confirm("Reset Total Water Saved to 0?")) return;
+    if (!confirm("Reset Total Water Counter to 0?")) return;
     try {
-      await set(ref(db, "sensors/totalSavedWater"), 0);
-      waterSavedEl.textContent = "0 Litres";
+      await set(ref(db, "sensors/totalWater"), 0);
+      totalWaterEl.textContent = "0 Litres";
       userSlider.classList.remove("active");
     } catch (err) {
       alert("Reset failed: " + err.message);
@@ -74,7 +74,7 @@ if (resetWaterBtn) {
 if (downloadCsvBtn) {
   downloadCsvBtn.onclick = () => {
     // 1. Prepare CSV Header
-    let csvContent = "Date/Time,Flow Rate (L/min),Tank Level (%),Water Saved (L)\n";
+    let csvContent = "Date/Time,Flow Rate (L/min),Tank Level (%),Total Water (L)\n";
 
     // 2. Get the currently filtered data (re-using the logic from applyTimeFrame)
     // We already have 'allLogEntries' which is updated by Firebase.
@@ -106,7 +106,7 @@ if (downloadCsvBtn) {
       const ts = e.timestamp ? new Date(e.timestamp * 1000).toLocaleString().replace(/,/g, "") : "—";
       const fr = (e.flowRate || e.flow_rate || e.flow || 0).toFixed(2);
       const tl = (e.tankLevel || e.tank_level || e.level || 0).toFixed(2);
-      const ws = getWaterSaved(e).toFixed(2);
+      const ws = getWaterUsed(e).toFixed(2);
       csvContent += `${ts},${fr},${tl},${ws}\n`;
     });
 
@@ -305,21 +305,21 @@ onAuthStateChanged(auth, user => {
       const key = d.getFullYear() + "-" +
         String(d.getMonth() + 1).padStart(2, "0") + "-" +
         String(d.getDate()).padStart(2, "0");
-      const val = getWaterSaved(e);
-      if (!dayMap[key] || val > dayMap[key].v) {
-        dayMap[key] = {
-          v: val,
-          t: currentTimeFrame === 'today'
-            ? new Date(e.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : d.toLocaleDateString(undefined, { day: "numeric", month: "short" })
-        };
-      }
+      const ws = getWaterUsed(e);
+      const day = d.toLocaleDateString('en-US', { weekday: 'short' });
+      dayMap[day] = (dayMap[day] || 0) + ws;
     });
     const chartData = Object.entries(dayMap)
-      .sort(([a], [b]) => a.localeCompare(b))
+      .sort(([a], [b]) => {
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        return days.indexOf(a) - days.indexOf(b);
+      })
       .slice(-8)
-      .map(([, v]) => v);
-    renderChart(chartData, "savedChart", "savedXAxis", "savedYAxis", "savedChartVal", "L", "bar-saved");
+      .map(([day, value]) => ({
+        v: value,
+        t: day
+      }));
+    renderChart(chartData, "totalWaterChart", "totalWaterXAxis", "totalWaterYAxis", "totalWaterChartVal", "L", "bar-total");
   }
 
   // ── TOTAL SAVED WATER ──────────────────────────────────────────
@@ -328,10 +328,16 @@ onAuthStateChanged(auth, user => {
   /* --------------------------------------------------------------------------
      FIREBASE LISTENER: TOTAL SAVED WATER
   -------------------------------------------------------------------------- */
-  onValue(ref(db, "sensors/totalSavedWater"), snap => {
-    liveWaterSaved = parseFloat((snap.val() || 0).toFixed(2));
-    waterSavedEl.textContent = liveWaterSaved + " Litres";
-    progressBar.style.width = Math.min((liveWaterSaved / TANK_CAPACITY_L) * 100, 100) + "%";
+  // ── 3. TOTAL WATER CONSUMED (Counter) ──────
+  onValue(ref(db, "sensors/totalWater"), snap => {
+    const v = snap.val() || 0;
+    liveWaterSaved = v;
+    totalWaterEl.textContent = `${parseFloat(v).toFixed(2)} Litres`;
+
+    // Progress bar logic
+    const goal = 1000;
+    const progress = Math.min((v / goal) * 100, 100);
+    progressBar.style.width = progress + "%";
   });
 
   /* --------------------------------------------------------------------------
@@ -361,12 +367,14 @@ onAuthStateChanged(auth, user => {
           e.waterSaved || e.savedWater || e.total_saved ||
           e.water_saved || e.saved || 0;
         const ws = Number(wsRaw).toFixed(2);
-        return `<tr>
-        <td>${ts}</td>
-        <td>${fr} <span class="unit">L/min</span></td>
-        <td>${tl} <span class="unit">%</span></td>
-        <td>${ws} <span class="unit">L</span></td>
-      </tr>`;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${ts}</td>
+          <td>${(e.flowRate || 0).toFixed(2)} <span class="unit">L/min</span></td>
+          <td>${(e.tankLevel || 0).toFixed(1)} <span class="unit">%</span></td>
+          <td>${getWaterUsed(e).toFixed(2)} <span class="unit">L</span></td>
+        `;
+        return row.outerHTML;
       }).join("");
     }
   });

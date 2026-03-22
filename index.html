@@ -51,7 +51,7 @@
       </button>
       <button class="slider-btn reset-btn" id="resetWaterBtn">
         <span class="sbtn-icon">&#128260;</span>
-        <span class="sbtn-label">Reset Water Saved</span>
+        <span class="sbtn-label">Reset Total Counter</span>
         <span class="sbtn-arrow">&#8250;</span>
       </button>
       <button class="slider-btn download-btn" id="downloadCsvBtn">
@@ -138,14 +138,14 @@
       <span id="tankStatus" class="badge badge-medium">Medium</span>
     </div>
 
-    <!-- Total Saved Card -->
+    <!-- Total Water Card -->
     <div class="card glass-card">
-      <h3>&#129507; Total Water Saved</h3>
-      <p class="value" id="waterSaved">0 <span style="font-size:1.1rem;opacity:.6">L</span></p>
+      <h3>&#129507; Total Water Used</h3>
+      <p class="value" id="totalWater">0 <span style="font-size:1.1rem;opacity:.6">L</span></p>
       <div class="progress-container">
         <div id="progressBar" class="progress-bar"></div>
       </div>
-      <small class="sub-label">Keep saving &#128167;</small>
+      <small class="sub-label">Monitor usage &#128167;</small>
     </div>
 
   </section>
@@ -156,7 +156,7 @@
       <div class="analytics-title-group">
         <span class="analytics-icon">&#128202;</span>
         <div>
-          <h2>Total Water Saved</h2>
+          <h2>Total Water Consumption</h2>
           <p>Daily totals &mdash; last 8 days</p>
         </div>
       </div>
@@ -169,11 +169,20 @@
 
     <div class="analytics-grid analytics-single">
       <div class="chart-card glass-card">
-        <div class="bar-chart-wrap">
-          <div class="y-axis" id="savedYAxis"></div>
-          <div class="bar-chart" id="savedChart"></div>
+        <div class="chart-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div class="legend">
+            <div class="legend-item">
+              <span class="legend-dot" style="background:linear-gradient(to top, #00B4D8, #90E0EF)"></span>
+              <span>LITRES USED</span>
+            </div>
+          </div>
+          <div id="totalWaterChartVal" class="value" style="font-size:1.4rem;">0 L</div>
         </div>
-        <div class="x-axis" id="savedXAxis"></div>
+        <div class="bar-chart-wrap">
+          <div class="y-axis" id="totalWaterYAxis"></div>
+          <div class="bar-chart" id="totalWaterChart"></div>
+        </div>
+        <div class="x-axis" id="totalWaterXAxis"></div>
       </div>
     </div>
   </section>
@@ -194,9 +203,9 @@
         <thead>
           <tr>
             <th>&#128336; Timestamp</th>
-            <th>&#127754; Flow Rate</th>
-            <th>&#128167; Tank Level</th>
-            <th>&#129507; Water Saved</th>
+            <th>Flow Rate</th>
+            <th>Tank Level</th>
+            <th>Total Water</th>
           </tr>
         </thead>
         <tbody id="historyBody">

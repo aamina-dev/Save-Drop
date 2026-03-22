@@ -42,7 +42,7 @@ const downloadCsvBtn = document.getElementById("downloadCsvBtn");
 // ── GLOBAL STATE (For Chart & CSV) ───────────────────────────
 let allLogEntries = [];
 let currentTimeFrame = 'today';
-let liveWaterSaved = 0; // cached from sensors/totalSavedWater
+let liveWaterUsed = 0; // cached from sensors/totalWater
 
 function getWaterUsed(e) {
   const v = e.totalWater || e.volume || e.totalLitres || e.totalSavedWater ||
@@ -161,7 +161,8 @@ function renderChart(history, chartId, xAxisId, yAxisId, liveValId, unit, barCla
   for (let t = 4; t >= 0; t--) {
     const tick = document.createElement("span");
     tick.className = "y-tick";
-    tick.textContent = Math.round((maxV * t) / 4 * 10) / 10;
+    const roundedV = Math.round((maxV * t) / 4 * 10) / 10;
+    tick.textContent = roundedV;
     yAxis.appendChild(tick);
   }
 
@@ -178,7 +179,7 @@ function renderChart(history, chartId, xAxisId, yAxisId, liveValId, unit, barCla
 
     const tip = document.createElement("span");
     tip.className = "bar-tooltip";
-    tip.textContent = item.v + " " + unit;
+    tip.textContent = item.v.toFixed(2) + " " + unit;
     bar.appendChild(tip);
     col.appendChild(bar);
     chart.appendChild(col);
@@ -299,31 +300,40 @@ onAuthStateChanged(auth, user => {
 
     // ── Rebuild chart only — card is updated by sensors/totalSavedWater listener ──
     const dayMap = {};
+
     filtered.forEach(e => {
       if (!e.timestamp) return;
       const d = new Date(e.timestamp * 1000);
-      const key = d.getFullYear() + "-" +
-        String(d.getMonth() + 1).padStart(2, "0") + "-" +
-        String(d.getDate()).padStart(2, "0");
+      let label = "";
+
+      if (currentTimeFrame === 'today') {
+        // Group by Hour (e.g., "10 AM")
+        let hh = d.getHours();
+        const ampm = hh >= 12 ? 'PM' : 'AM';
+        hh = hh % 12 || 12;
+        label = hh + " " + ampm;
+      } else {
+        // Group by Date (e.g., "22 Mar")
+        label = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+      }
+
       const ws = getWaterUsed(e);
-      const day = d.toLocaleDateString('en-US', { weekday: 'short' });
-      dayMap[day] = (dayMap[day] || 0) + ws;
+      // We want the HIGHEST value seen for that label (since its a cumulative counter)
+      if (!dayMap[label] || ws > dayMap[label]) {
+        dayMap[label] = ws;
+      }
     });
-    const chartData = Object.entries(dayMap)
-      .sort(([a], [b]) => {
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        return days.indexOf(a) - days.indexOf(b);
-      })
-      .slice(-8)
-      .map(([day, value]) => ({
-        v: value,
-        t: day
-      }));
+
+    const chartData = Object.entries(dayMap).map(([label, value]) => ({
+      v: value,
+      t: label
+    }));
+
     renderChart(chartData, "totalWaterChart", "totalWaterXAxis", "totalWaterYAxis", "totalWaterChartVal", "L", "bar-total");
   }
 
-  // ── TOTAL SAVED WATER ──────────────────────────────────────────
-  const TANK_CAPACITY_L = 0.75; // 750 ml tanker capacity used for the progress bar
+  // ── TOTAL WATER USAGE ──────────────────────────────────────────
+  const TANK_CAPACITY_L = 0.75; 
 
   /* --------------------------------------------------------------------------
      FIREBASE LISTENER: TOTAL SAVED WATER
@@ -331,11 +341,11 @@ onAuthStateChanged(auth, user => {
   // ── 3. TOTAL WATER CONSUMED (Counter) ──────
   onValue(ref(db, "sensors/totalWater"), snap => {
     const v = snap.val() || 0;
-    liveWaterSaved = v;
-    totalWaterEl.textContent = `${parseFloat(v).toFixed(2)} Litres`;
+    liveWaterUsed = v;
+    totalWaterEl.innerHTML = `${parseFloat(v).toFixed(2)} <span style="font-size:1.1rem;opacity:.6">L</span>`;
 
-    // Progress bar logic
-    const goal = 1000;
+    // Progress bar logic 
+    const goal = 10.0; // Let's set a 10L daily goal for the visual bar
     const progress = Math.min((v / goal) * 100, 100);
     progressBar.style.width = progress + "%";
   });

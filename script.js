@@ -83,6 +83,66 @@ if (resetWaterBtn) {
   };
 }
 
+/* ANALYTICS: Export History to CSV (User Panel) */
+if (downloadCsvBtn) {
+  downloadCsvBtn.onclick = () => {
+    // A) Define column headers
+    let csvContent = "Date/Time,Flow Rate (L/min),Tank Level (%),Total Water (L),Cost (₹)\n";
+
+    // B) Respect the current UI filter (Today/Week/All)
+    const now = new Date();
+    const todayKey = now.toLocaleDateString();
+    const weekAgoMs = Date.now() - 7 * 86400000;
+
+    let exportData = allLogEntries;
+    if (currentTimeFrame === 'today') {
+      exportData = allLogEntries.filter(e => e.timestamp && (new Date(e.timestamp * 1000).toLocaleDateString() === todayKey));
+    } else if (currentTimeFrame === 'week') {
+      exportData = allLogEntries.filter(e => e.timestamp && (e.timestamp * 1000 >= weekAgoMs));
+    }
+
+    // C) Format data rows (Reverse order: Newest First)
+    let totalWaterQty = 0;
+    let totalWaterCost = 0;
+
+    // Use a high-fidelity total calculation (Last entry total - start entry total)
+    // Or just use the max totalWater seen in the logs for that period
+    exportData.forEach(e => {
+      const val = getWaterUsed(e);
+      if (val > totalWaterQty) totalWaterQty = val;
+    });
+    totalWaterCost = totalWaterQty * WATER_RATE_PER_LITRE;
+
+    [...exportData].reverse().forEach(e => {
+      const ts = e.timestamp ? new Date(e.timestamp * 1000).toLocaleString().replace(/,/g, "") : "—";
+      const fr = (e.flowRate || 0).toFixed(2);
+      const tl = (e.tankLevel || 0).toFixed(2);
+      const ws = getWaterUsed(e);
+      const cost = (ws * WATER_RATE_PER_LITRE).toFixed(2);
+      csvContent += `${ts},${fr},${tl},${ws.toFixed(2)},${cost}\n`;
+    });
+
+    // D) Add Professional Summary Section
+    csvContent += "\n--- SUMMARY ---\n";
+    csvContent += `Report Period,${currentTimeFrame.toUpperCase()}\n`;
+    csvContent += `Total Water Usage (L),${totalWaterQty.toFixed(2)}\n`;
+    csvContent += `Total Water Charges (₹),${totalWaterCost.toFixed(2)}\n`;
+    csvContent += `Rate applied,₹${WATER_RATE_PER_LITRE}/L\n`;
+
+    // E) Execute browser download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.href = url;
+    link.download = `SaveDrop_Report_${dateStr}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    userSlider.classList.remove("active");
+  };
+}
+
 /**
  * UI ENGINE: Renders the custom Animated Bar Chart
  */

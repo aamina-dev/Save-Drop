@@ -87,7 +87,8 @@ if (resetWaterBtn) {
 if (downloadCsvBtn) {
   downloadCsvBtn.onclick = () => {
     // A) Define column headers (Add BOM for Excel compatibility)
-    let csvContent = "\ufeffDate/Time,Flow Rate (L/min),Tank Level (%),Total Water (L),Cost (Rs.)\n";
+    // We separate Date and Time into TWO columns so Excel doesn't misalign them
+    let csvContent = "\ufeffDate,Time,Flow Rate (L/min),Tank Level (%),Total Water Used (L),Total Cost (Rs.)\n";
 
     // B) Respect the current UI filter (Today/Week/All)
     const now = new Date();
@@ -112,20 +113,24 @@ if (downloadCsvBtn) {
     totalWaterCost = totalWaterQty * WATER_RATE_PER_LITRE;
 
     [...exportData].reverse().forEach(e => {
-      const ts = e.timestamp ? new Date(e.timestamp * 1000).toLocaleString() : "—";
+      const ts = e.timestamp ? new Date(e.timestamp * 1000) : null;
+      const dateStr = ts ? ts.toLocaleDateString() : "—";
+      const timeStr = ts ? ts.toLocaleTimeString() : "—";
       const fr = (e.flowRate || 0).toFixed(2);
       const tl = (e.tankLevel || 0).toFixed(1);
       const ws = getWaterUsed(e);
       const cost = (ws * WATER_RATE_PER_LITRE).toFixed(2);
-      csvContent += `${ts},${fr},${tl},${ws.toFixed(2)},${cost}\n`;
+      
+      // Explicitly separate Date and Time with a comma
+      csvContent += `${dateStr},${timeStr},${fr},${tl},${ws.toFixed(2)},${cost}\n`;
     });
 
-    // D) Add Professional Summary Section
+    // D) Add Professional Summary Section (Table-aligned)
     csvContent += "\n--- SUMMARY ---\n";
     csvContent += `Report Period,${currentTimeFrame.toUpperCase()}\n`;
-    csvContent += `Total Water Usage (L),${totalWaterQty.toFixed(2)}\n`;
-    csvContent += `Total Water Charges (Rs.),${totalWaterCost.toFixed(2)}\n`;
-    csvContent += `Rate per Litre,Rs.${WATER_RATE_PER_LITRE}/L\n`;
+    csvContent += `Total Water Usage,${totalWaterQty.toFixed(2)} L\n`;
+    csvContent += `Total Water Charges,${totalWaterCost.toFixed(2)} Rs.\n`;
+    csvContent += `Rate applied,Rs.${WATER_RATE_PER_LITRE} per L\n`;
 
     // E) Execute browser download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

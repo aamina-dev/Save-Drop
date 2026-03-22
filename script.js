@@ -39,6 +39,19 @@ const historyBody = document.getElementById("historyBody");
 const resetWaterBtn = document.getElementById("resetWaterBtn");
 const downloadCsvBtn = document.getElementById("downloadCsvBtn");
 
+// ── GLOBAL STATE (For Chart & CSV) ───────────────────────────
+let allLogEntries = [];
+let currentTimeFrame = 'today';
+let liveWaterSaved = 0; // cached from sensors/totalSavedWater
+
+function getWaterSaved(e) {
+  const v = e.volume || e.totalLitres || e.totalSavedWater ||
+    e.waterSaved || e.savedWater || e.total_saved ||
+    e.water_saved || e.saved || 0;
+  // Strictly use the value stored in the log entry — never fall back to live sensor
+  return parseFloat(Number(v).toFixed(2));
+}
+
 // Profile slider
 profileIcon.onclick = () => userSlider.classList.toggle("active");
 sliderClose.onclick = () => userSlider.classList.remove("active");
@@ -255,25 +268,13 @@ onAuthStateChanged(auth, user => {
 
 
 
-  // Stores all log entries for re-filtering by time frame
-  let allLogEntries = [];
-  let currentTimeFrame = 'today';
-  let liveWaterSaved = 0; // cached from sensors/totalSavedWater
-
+  // ── Re-filtering logic for Time Frames ──────
   window.setTimeFrame = function (tf, btn) {
     currentTimeFrame = tf;
     document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     applyTimeFrame();
   };
-
-  function getWaterSaved(e) {
-    const v = e.volume || e.totalLitres || e.totalSavedWater ||
-      e.waterSaved || e.savedWater || e.total_saved ||
-      e.water_saved || e.saved || 0;
-    // Strictly use the value stored in the log entry — never fall back to live sensor
-    return parseFloat(Number(v).toFixed(2));
-  }
 
   function applyTimeFrame() {
     const now = new Date();

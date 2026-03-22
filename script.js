@@ -233,8 +233,8 @@ onAuthStateChanged(auth, user => {
   -------------------------------------------------------------------------- */
   onValue(ref(db, "sensors/flowRate"), snap => {
     updateConnectionStatus(); // Reset the watchdog timer since we got data!
-    const v = parseFloat((snap.val() || 0).toFixed(2));
-    flowRateEl.textContent = v + " L/min";
+    const v = (snap.val() || 0).toFixed(2);
+    flowRateEl.innerHTML = `${v}<span class="unit">L/min</span>`;
     const isHigh = v > 5;
     flowStatusEl.textContent = isHigh ? "High" : "Normal";
     flowStatusEl.className = "badge " + (isHigh ? "badge-high" : "badge-normal");
@@ -341,20 +341,20 @@ onAuthStateChanged(auth, user => {
     const v = snap.val() || 0;
     liveWaterUsed = v;
     
-    // 1. Update main value with Unit
-    totalWaterEl.innerHTML = `${parseFloat(v).toFixed(2)} <span style="font-size:1.1rem;opacity:.6">L</span>`;
+    // 1. Update main value with Professional Unit
+    totalWaterEl.innerHTML = `${parseFloat(v).toFixed(2)}<span class="unit">L</span>`;
 
-    // 2. Dynamic Usage Insight
+    // 2. Dynamic Usage Badge
     if (usageInsightEl) {
       if (v < 2.0) {
         usageInsightEl.innerHTML = "Low usage 💧";
-        usageInsightEl.style.color = "#0096C7"; // Normal Blue
+        usageInsightEl.className = "badge badge-normal";
       } else if (v < 5.0) {
         usageInsightEl.innerHTML = "Moderate usage 💧";
-        usageInsightEl.style.color = "#9a4208"; // Orange-ish
+        usageInsightEl.className = "badge badge-medium";
       } else {
         usageInsightEl.innerHTML = "High usage ⚠️";
-        usageInsightEl.style.color = "#b31b24"; // Red alert
+        usageInsightEl.className = "badge badge-high";
       }
     }
   });

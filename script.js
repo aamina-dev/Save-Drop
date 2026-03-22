@@ -88,7 +88,7 @@ if (resetWaterBtn) {
 if (downloadCsvBtn) {
   downloadCsvBtn.onclick = () => {
     // A) Define column headers
-    let csvContent = "Date/Time,Flow Rate (L/min),Tank Level (%),Total Water (L)\n";
+    let csvContent = "Date/Time,Flow Rate (L/min),Tank Level (%),Total Water (L),Cost (₹)\n";
 
     // B) Respect the current UI filter (Today/Week/All)
     const now = new Date();
@@ -112,15 +112,31 @@ if (downloadCsvBtn) {
     }
 
     // C) Format data rows (Reverse order: Newest First)
+    let totalWaterQty = 0;
+    let totalWaterCost = 0;
+
+    [...exportData].forEach(e => {
+      totalWaterQty = Math.max(totalWaterQty, getWaterUsed(e));
+    });
+    totalWaterCost = totalWaterQty * WATER_RATE_PER_LITRE;
+
     [...exportData].reverse().forEach(e => {
       const ts = e.timestamp ? new Date(e.timestamp * 1000).toLocaleString().replace(/,/g, "") : "—";
       const fr = (e.flowRate || 0).toFixed(2);
       const tl = (e.tankLevel || 0).toFixed(2);
-      const ws = getWaterUsed(e).toFixed(2);
-      csvContent += `${ts},${fr},${tl},${ws}\n`;
+      const ws = getWaterUsed(e);
+      const cost = (ws * WATER_RATE_PER_LITRE).toFixed(2);
+      csvContent += `${ts},${fr},${tl},${ws.toFixed(2)},${cost}\n`;
     });
 
-    // D) Execute browser download
+    // D) Add Summary Section at the bottom
+    csvContent += "\n--- SUMMARY ---\n";
+    csvContent += `Report Period,${currentTimeFrame.toUpperCase()}\n`;
+    csvContent += `Total Water Usage (L),${totalWaterQty.toFixed(2)}\n`;
+    csvContent += `Total Water Charges (₹),${totalWaterCost.toFixed(2)}\n`;
+    csvContent += `Rate applied,₹${WATER_RATE_PER_LITRE}/L\n`;
+
+    // E) Execute browser download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -167,7 +183,8 @@ function renderChart(history, chartId, xAxisId, yAxisId, liveValId, unit, barCla
 
     const tip = document.createElement("span");
     tip.className = "bar-tooltip";
-    tip.textContent = item.v.toFixed(2) + " " + unit;
+    const cost = (item.v * WATER_RATE_PER_LITRE).toFixed(2);
+    tip.innerHTML = `<b>${item.v.toFixed(2)} ${unit}</b><br>₹${cost}`;
     
     bar.appendChild(tip);
     col.appendChild(bar);

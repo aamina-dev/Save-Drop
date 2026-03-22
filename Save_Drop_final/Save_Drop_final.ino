@@ -1,14 +1,27 @@
+/* 
+  =========================================================================
+  SAVE-DROP: SMART WATER MONITORING SYSTEM (FINAL FIRMWARE)
+  Project: IoT-based Water Consumption & Tank Level Monitor
+  Developed by: Ansari Aamina
+  
+  TECHNICAL OVERVIEW:
+  - Microcontroller: NodeMCU (ESP8266)
+  - Database: Firebase Realtime Database
+  - Sensors: YF-S201 (Flow), HC-SR04 (Ultrasonic)
+  =========================================================================
+*/
+
 #include <ESP8266WiFi.h>
 #include <Firebase_ESP_Client.h>
 #include <time.h>
 
 /* ---------------- WIFI CONFIG ---------------- */
-// Put your home WiFi name and password here so the NodeMCU can connect to the internet.
+// Home WiFi credentials for internet connectivity
 #define WIFI_SSID "Jasmine"
 #define WIFI_PASSWORD "yaseen786"
 
 /* ---------------- FIREBASE CONFIG ---------------- */
-// Your Firebase database credentials and the secret key to prevent hackers from writing fake data.
+// Firebase Database secrets for secure data synchronization
 #define API_KEY "AIzaSyCdcE6ASFSi8ZHn82q741xUWUO1cp7tK3g"
 #define DATABASE_URL "https://save-drop-default-rtdb.firebaseio.com/"
 #define DEVICE_SECRET "Savedrop_Secure"
@@ -19,194 +32,132 @@ FirebaseAuth auth;
 FirebaseConfig config;
 
 /* ---------------- SENSOR PINS ---------------- */
-// D5 is for the YF-S201 Water Flow Sensor (Yellow Wire)
-#define FLOW_PIN D5
-// D1 and D2 are for the HC-SR04 Ultrasonic Distance Sensor
-#define TRIG_PIN D1
-#define ECHO_PIN D2
+#define FLOW_PIN D5    // Input from Flow Sensor (Yellow wire)
+#define TRIG_PIN D1    // Trigger for Ultrasonic Sensor
+#define ECHO_PIN D2    // Echo for Ultrasonic Sensor
 
-/* ---------------- FLOW SENSOR VARIABLES ---------------- */
-// pulseCount counts how many times the little wheel inside the flow sensor spins.
-// It is marked 'volatile' because it changes rapidly in the background interrupt function.
-volatile int pulseCount = 0;
-float flowRate = 0;       // Liters per minute
-float totalWater = 0;    // Total water that has passed through the pipe (Consumption)
+/* ---------------- GLOBAL SYSTEM VARIABLES ---------------- */
+volatile int pulseCount = 0; // Tracks sensor 'clicks' in real-time background
+float flowRate = 0;          // Current speed of water (L/min)
+float totalWater = 0;        // Cumulative water used (Litres)
+float distance;              // Distance to water surface (cm)
+float percentage;            // Calculated Tank Fill Level (0-100%)
 
-/* ---------------- TANK VARIABLES ---------------- */
-long duration;            // Time it takes for the ultrasonic sound to bounce back
-float distance;           // Distance to the water surface in centimeters
-float percentage;         // How full the tank is (0% to 100%)
-
-/* ---------------- CALIBRATION VALUES ---------------- */
-// emptyDistance is depth of your empty jar (cm). fullDistance is the blind-spot at the top.
+/* ---------------- CALIBRATION SETTINGS ---------------- */
+// Jar/Tank geometry in cm (Empty: sensor to bottom | Full: sensor to top water line)
 float emptyDistance = 12.1;
 float fullDistance  = 2.5; 
 
-// Flow factor provided by the sensor datasheet (YF-S201 is usually around 7.5 or 48.5 depending on pipe size)
+// Flow Calibration Factor (Specific to YF-S201 sensor datasheet)
 float flowCalibration = 48.5;
 
-/* ---------------- TIME VARIABLES ---------------- */
-// We use these to track time using the ESP's internal stopwatch (millis) instead of using delay().
-// Using delay() makes the ESP freeze, which means we might miss a water pulse!
+/* ---------------- TIMING VARIABLES ---------------- */
+// Using non-blocking timers instead of delay() to ensure high-speed sensor accuracy
 unsigned long previousMillis = 0;
 unsigned long lastLogMillis = 0;
 
-/* ---------------- FLOW SENSOR INTERRUPT ---------------- */
-// This function runs automatically in the background every time the flow sensor wheel clicks.
+/* ---------------- INTERRUPT SERVICE ROUTINE (ISR) ---------------- */
+// Runs instantly every time a water pulse is detected (very high priority)
 void IRAM_ATTR pulseCounter() {
   pulseCount++;
 }
 
-/* ---------------- SETUP FUNCTION (Runs Once) ---------------- */
+/* ---------------- SETUP FUNCTION (Initialization) ---------------- */
 void setup() {
-  Serial.begin(9600); // Start the serial monitor for debugging
+  Serial.begin(9600); // Start Serial Terminal for debugging
 
-  /* ----- WIFI CONNECT ----- */
+  /* A) CONNECT TO INTERNET */
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nWiFi Connected");
+  Serial.println("\nWiFi Connected ✅");
 
-  /* ----- TIME SYNC ----- */
-  // We need to fetch the real-world time from the internet so our Firebase logs have timestamps.
+  /* B) SYNC GLOBAL TIME (NTP) */
+  // Necessary for accurate data timestamps in Firebase Logs
   configTime(5.5 * 3600, 0, "pool.ntp.org", "time.nist.gov");
-  Serial.print("Syncing time");
+  Serial.print("Syncing Time");
   while (time(nullptr) < 100000) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nTime Synced");
+  Serial.println("\nTime Synced ✅");
 
-  /* ----- FIREBASE CONFIG ----- */
+  /* C) FIREBASE CORE CONFIG */
   config.api_key = API_KEY;
   config.database_url = DATABASE_URL;
 
-  // Sign in completely anonymously since the NodeMCU is just a hardware device, not a user.
+  // Sign in anonymously to authenticate this hardware device
   if (Firebase.signUp(&config, &auth, "", "")) {
-    Serial.println("Firebase SignUp OK");
+    Serial.println("Firebase Auth OK ✅");
   } else {
-    Serial.printf("Signup failed: %s\n", config.signer.signupError.message.c_str());
+    Serial.printf("Auth Error: %s\n", config.signer.signupError.message.c_str());
   }
 
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
 
-  /* ----- RESTORE PREVIOUS WATER SAVED ----- */
-  // If the NodeMCU loses power and restarts, we fetch the last known totalLitres from Firebase so we don't start at 0 again.
+  /* D) RESTORE PERISTENT STATE */
+  // Fetch existing "Total Water" counter from cloud so it doesn't reset on restart
   delay(1000); 
   if (Firebase.RTDB.getFloat(&fbdo, "/sensors/totalWater")) {
     totalWater = fbdo.floatData();
-    Serial.print("Restored totalWater from Firebase: ");
-    Serial.println(totalWater);
-  } else {
-    Serial.println("No previous totalWater found, starting from 0");
+    Serial.print("Restored Counter: "); Serial.println(totalWater);
   }
 
-  /* ----- SENSOR PIN SETUP ----- */
+  /* E) HARDWARE SETUP */
   pinMode(FLOW_PIN, INPUT_PULLUP);
-  // Tell the ESP to trigger the pulseCounter() function whenever FLOW_PIN goes from LOW to HIGH (RISING).
   attachInterrupt(digitalPinToInterrupt(FLOW_PIN), pulseCounter, RISING);
-
-  pinMode(TRIG_PIN, OUTPUT); // Sends the sound wave
-  pinMode(ECHO_PIN, INPUT);  // Listens for the echo
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
 }
 
-/* ---------------- MAIN LOOP (Runs Forever) ---------------- */
+/* ---------------- MAIN LOOP (System Execution) ---------------- */
 void loop() {
-
-  // Get the current millisecond time of the ESP8266 stopwatch.
   unsigned long currentMillis = millis();
 
-  // Wait until it has been 5000 milliseconds (5 seconds) since the last time this ran.
-  // This is better than delay(5000) because the flow sensor can still run in the background.
+  // Run every 5 seconds (Sensor Update Cycle)
   if (currentMillis - previousMillis >= 5000) {
-
-    // Calculate EXACTLY how many milliseconds have passed to ensure pure mathematical accuracy.
     unsigned long timeElapsed = currentMillis - previousMillis;
     previousMillis = currentMillis;
 
-    /* -------- 1. FLOW SENSOR CALCULATION -------- */
-    // Divide pulses by the calibration factor to get Liters per Minute.
+    /* 1. CALCULATE FLOW & VOLUME */
+    // Convert rapid pulses into Liters per Minute
     flowRate = pulseCount / flowCalibration;
+    if(flowRate < 0.02) flowRate = 0; // Remove electrical jitter
 
-    // Ignore tiny accidental sloshing or electrical noise.
-    if(flowRate < 0.02) flowRate = 0;   
-
-    // Convert Flow Rate (Liters/Min) into the exact amount of Liters that fell in the last 5 seconds.
-    // L/ms = flowRate / 60000.0. Multiply by timeElapsed to get the volume for this exact cycle.
+    // Accumulate total volume (math: rate x time)
     float litresThisCycle = (flowRate / 60000.0) * timeElapsed;
-    
-    // Add it to the grand total
     totalWater += litresThisCycle;
 
-    // Safely pause the background interrupts for a split second while we reset the count to 0, 
-    // to guarantee we don't delete a pulse while the CPU is doing math.
+    // Reset pulses for the next 5s counting window
     noInterrupts();
     pulseCount = 0;
     interrupts();
 
-    /* -------- 2. ULTRASONIC SENSOR CALCULATION -------- */
+    /* 2. ULTRASONIC TANK MEASUREMENT */
     float totalDistance = 0;
-
-    // Take 5 quick readings and average them out to prevent wild jumping/glitching numbers.
-    for(int i=0; i<5; i++){
+    for(int i=0; i<5; i++){ // 5 Reading averaging for high stability
+      digitalWrite(TRIG_PIN, LOW); delayMicroseconds(2);
+      digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
       digitalWrite(TRIG_PIN, LOW);
-      delayMicroseconds(2);
-      
-      // Shoot a 10 microsecond sound wave pulse
-      digitalWrite(TRIG_PIN, HIGH);
-      delayMicroseconds(10);
-      digitalWrite(TRIG_PIN, LOW);
-
-      // Listen for the echo. If the echo doesn't come back in 30ms (30000us), assume it's lost and move on!
-      duration = pulseIn(ECHO_PIN, HIGH, 30000);
-
-      // Math: Distance = (Time x Speed of Sound in Air) / 2 (because sound goes there AND back)
-      float d = duration * 0.034 / 2;
-      totalDistance += d;
-
-      delay(40); // Wait 40ms before next pulse to let old echoes fade away
+      long duration = pulseIn(ECHO_PIN, HIGH, 30000);
+      totalDistance += (duration * 0.034 / 2); // cm conversion
+      delay(40);
     }
-
-    // Calculate the average distance
     distance = totalDistance / 5;
 
-    /* -------- 3. TANK PERCENTAGE CALCULATION -------- */
-    // Map the distance to a 0-100% scale based on our calibration numbers.
+    /* 3. MAPPING & STATUS LOGIC */
+    // Map raw distance (cm) to human-readable % level
     percentage = ((emptyDistance - distance) / (emptyDistance - fullDistance)) * 100;
+    percentage = constrain(percentage, 0, 100);
 
-    // Keep the percentage locked between 0 and 100 (so it doesn't say -5% or 110%)
-    if (percentage < 0) percentage = 0;
-    if (percentage > 100) percentage = 100;
+    String status = (percentage < 20) ? "LOW_LEVEL" : (percentage > 95) ? "OVERFLOW" : "NORMAL";
 
-    /* -------- 4. TANK STATUS LOGIC -------- */
-    // Set a text-based status alert depending on the water level
-    String status;
-    if (percentage < 20) {
-      status = "LOW_LEVEL";
-    } else if (percentage > 95) {
-      status = "OVERFLOW";
-    } else {
-      status = "NORMAL";
-    }
-
-    /* -------- 5. SERIAL MONITOR LOGGING -------- */
-    // Print all the calculated values to your computer screen just so you can debug it via USB.
-    Serial.println("------ Sensor Data ------");
-    Serial.print("Distance: "); Serial.print(distance); Serial.println(" cm");
-    Serial.print("Flow Rate: "); Serial.print(flowRate); Serial.println(" L/min");
-    Serial.print("Tank Level: "); Serial.print(percentage); Serial.println(" %");
-    Serial.print("Total Water: "); Serial.print(totalWater); Serial.println(" L");
-    Serial.print("Status: "); Serial.println(status);
-
-    /* -------- 6. UPLOAD TO FIREBASE -------- */
+    /* 4. CLOUD SYNCHRONIZATION (Firebase) */
     if (Firebase.ready()) {
-
-      // A) LIVE DASHBOARD UPDATE
-      // Pack all the live sensor values AND the secret device key into a single JSON object.
       FirebaseJson sensorJson;
       sensorJson.set("deviceKey", DEVICE_SECRET);
       sensorJson.set("flowRate", flowRate);
@@ -214,33 +165,22 @@ void loop() {
       sensorJson.set("totalWater", totalWater);
       sensorJson.set("status", status);
 
-      // Blast it to the "/sensors" folder in one go (very fast and uses less internet).
+      // A) Update Real-time Dashboard Nodes
       Firebase.RTDB.updateNode(&fbdo, "/sensors", &sensorJson);
 
-      // B) HISTORICAL LOG (SMART LOGGING)
-      // Only record a permanent database log if water is actively flowing, OR if 5 whole minutes (300,000 ms) have passed.
-      // This stops your database from exploding with millions of useless rows!
+      // B) Smart Data Logging (Persistent History)
+      // Save every 5 mins OR if water is actively flowing
       if (flowRate > 0 || (currentMillis - lastLogMillis >= 300000)) {
-        
-        unsigned long timestamp = time(nullptr); // Grab real-world time
-
         FirebaseJson logJson;
-        logJson.set("deviceKey", DEVICE_SECRET);
-        logJson.set("timestamp", timestamp);
+        logJson.set("timestamp", (unsigned long)time(nullptr));
         logJson.set("flowRate", flowRate);
         logJson.set("tankLevel", percentage);
         logJson.set("totalWater", totalWater);
-
-        // 'pushJSON' creates a new unique folder (like /logs/-Oxy123) to permanently save this moment in history.
         Firebase.RTDB.pushJSON(&fbdo, "/logs", &logJson);
-        
         lastLogMillis = currentMillis;
-        Serial.println("Historical Log Pushed");
+        Serial.println(">>> Historical Record Logged");
       }
-
-      Serial.println("Firebase Sensors Updated");
     }
-
-    Serial.println("-------------------------");
+    Serial.printf("LIVE -> Flow: %.2f L/m | Level: %.1f%% | Total: %.2f L\n", flowRate, percentage, totalWater);
   }
 }

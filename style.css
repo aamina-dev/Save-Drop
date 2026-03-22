@@ -1,3 +1,11 @@
+/* 
+  =========================================================================
+  SAVE-DROP: MODERN GLASSMORPHIC STYLES (style.css)
+  Project: IoT-based Water Consumption & Tank Level Monitor
+  Design Palette: Deep Sea Blues, Aquamarine, and Crystal Glass
+  =========================================================================
+*/
+
 /* ========== RESET & BASE ========== */
 *,
 *::before,
@@ -8,6 +16,7 @@
 }
 
 :root {
+  /* Dynamic Design Tokens */
   --bg-start: #daf3fb;
   --bg-mid: #eaf8fd;
   --bg-end: #f0fbff;

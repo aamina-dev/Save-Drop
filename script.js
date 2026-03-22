@@ -307,18 +307,16 @@ onAuthStateChanged(auth, user => {
       let label = "";
 
       if (currentTimeFrame === 'today') {
-        // Group by Hour (e.g., "10 AM")
-        let hh = d.getHours();
-        const ampm = hh >= 12 ? 'PM' : 'AM';
-        hh = hh % 12 || 12;
-        label = hh + " " + ampm;
+        // Aggregated Single Bar for Today
+        label = "Today";
       } else {
         // Group by Date (e.g., "22 Mar")
         label = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
       }
 
       const ws = getWaterUsed(e);
-      // We want the HIGHEST value seen for that label (since its a cumulative counter)
+      // For 'today' (single bar), we want the MAX total water seen today 
+      // (since totalWater is a cumulative counter from Arduino)
       if (!dayMap[label] || ws > dayMap[label]) {
         dayMap[label] = ws;
       }

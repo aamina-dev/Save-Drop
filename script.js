@@ -331,6 +331,11 @@ onAuthStateChanged(auth, user => {
       else if (v < 5.0) { usageInsightEl.innerHTML = "Moderate usage 💧"; usageInsightEl.className = "badge badge-medium"; }
       else { usageInsightEl.innerHTML = "High usage ⚠️"; usageInsightEl.className = "badge badge-high"; }
     }
+
+    // 4. Live Chart Update: Refresh the "Today" chart instantly when live water flows
+    if (currentTimeFrame === 'today') {
+      applyTimeFrameFilter();
+    }
   });
 
   /* CLOUD: Listen for Entry History (Table View) */
@@ -358,8 +363,12 @@ onAuthStateChanged(auth, user => {
   /* CLOUD: Fetch Master Logs (Analytics Hub) */
   onValue(query(ref(db, "logs"), limitToLast(3000)), snap => {
     const data = snap.val();
-    if (!data) return;
-    allLogEntries = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
+    if (!data) {
+      allLogEntries = []; // Clear cached logs if DB is empty
+    } else {
+      allLogEntries = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
+    }
+    // Always refresh chart even if logs are empty (to show "Live" data point)
     applyTimeFrameFilter();
   });
 

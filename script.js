@@ -264,23 +264,35 @@ onAuthStateChanged(auth, user => {
    */
   function applyTimeFrameFilter() {
     const now = new Date();
-    const todayKey = now.toLocaleDateString();
     const weekAgoMs = Date.now() - 7 * 86400000;
+
+    // Helper: Check if two dates are the same calendar day
+    const isSameDay = (d1, d2) => 
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate();
 
     let filtered = allLogEntries;
     if (currentTimeFrame === 'today') {
-      filtered = allLogEntries.filter(e => e.timestamp && (new Date(e.timestamp * 1000).toLocaleDateString() === todayKey));
+      filtered = allLogEntries.filter(e => e.timestamp && isSameDay(new Date(e.timestamp * 1000), now));
     } else if (currentTimeFrame === 'week') {
       filtered = allLogEntries.filter(e => e.timestamp && (e.timestamp * 1000 >= weekAgoMs));
     }
 
     // Aggregate data for Chart Mapping
     const dayMap = {};
+
+    // 1. If viewing "Today", initialize with the live value from the sensor
+    if (currentTimeFrame === 'today') {
+      dayMap["Today"] = liveWaterUsed;
+    }
+
+    // 2. Aggregate logs
     filtered.forEach(e => {
       const d = new Date(e.timestamp * 1000);
       let label = (currentTimeFrame === 'today') ? "Today" : d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
       const val = getWaterUsed(e);
-      if (!dayMap[label] || val > dayMap[label]) dayMap[label] = val; // Latest total usage
+      if (!dayMap[label] || val > dayMap[label]) dayMap[label] = val; // Use latest total for accurate scaling
     });
 
     const chartData = Object.entries(dayMap).map(([t, v]) => ({ t, v }));

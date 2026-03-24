@@ -282,15 +282,22 @@ body::after {
 }
 
 .sbtn-icon {
-  font-size: 1.15rem;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: rgba(0, 150, 200, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.sbtn-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: #0077B6; /* Professional Deep Blue */
+  stroke-width: 2.2px;
 }
 
 .sbtn-label {
@@ -313,6 +320,10 @@ body::after {
   background: rgba(230, 57, 70, 0.1);
 }
 
+.logout-btn .sbtn-icon svg {
+  stroke: var(--accent-red);
+}
+
 .logout-btn:hover {
   background: rgba(255, 240, 240, 0.95);
   box-shadow: 0 6px 20px rgba(230, 57, 70, 0.1);
@@ -327,6 +338,10 @@ body::after {
   background: rgba(230, 130, 0, 0.1);
 }
 
+.reset-btn .sbtn-icon svg {
+  stroke: var(--accent-orange);
+}
+
 .reset-btn:hover {
   background: rgba(255, 247, 230, 0.95);
   box-shadow: 0 6px 20px rgba(230, 130, 0, 0.1);
@@ -339,6 +354,10 @@ body::after {
 
 .download-btn .sbtn-icon {
   background: rgba(45, 198, 83, 0.1);
+}
+
+.download-btn .sbtn-icon svg {
+  stroke: var(--accent-green);
 }
 
 .download-btn:hover {

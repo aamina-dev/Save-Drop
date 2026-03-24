@@ -201,6 +201,12 @@ function renderChart(history, chartId, xAxisId, yAxisId, liveValId, unit, barCla
     tick.textContent = item.t;
     xAxis.appendChild(tick);
   });
+
+  // 4. Update the numerical readout (e.g. "5.2 L" in the chart header)
+  const valEl = document.getElementById(liveValId);
+  if (valEl) {
+    valEl.textContent = (history.length > 0 ? history[history.length - 1].v.toFixed(2) : "0") + " " + unit;
+  }
 }
 
 // --- CLOUD EVENT LISTENERS ---

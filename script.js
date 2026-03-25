@@ -289,8 +289,26 @@ onAuthStateChanged(auth, user => {
     const dayMap = {};
 
     // 1. If viewing "Today", initialize with the live value from the sensor
+    // ONLY if there is data for today, OR if the live value has changed since the last known log
     if (currentTimeFrame === 'today') {
-      dayMap["Today"] = liveWaterUsed;
+      let activeToday = false;
+      if (filtered.length > 0) {
+        activeToday = true;
+      } else {
+        const lastLog = allLogEntries.length > 0 ? allLogEntries[allLogEntries.length - 1] : null;
+        if (lastLog) {
+          const lastVal = getWaterUsed(lastLog);
+          if (Math.abs(liveWaterUsed - lastVal) > 0.001) {
+            activeToday = true;
+          }
+        } else if (liveWaterUsed > 0) {
+          activeToday = true;
+        }
+      }
+
+      if (activeToday) {
+        dayMap["Today"] = liveWaterUsed;
+      }
     }
 
     // 2. Aggregate logs

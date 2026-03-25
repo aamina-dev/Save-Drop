@@ -288,7 +288,18 @@ onAuthStateChanged(auth, user => {
     // Aggregate data for Chart Mapping
     const dayMap = {};
 
-    // 1. If viewing "Today", initialize with the live value from the sensor
+    // 1. Aggregate logs (extract chronological history first)
+    filtered.forEach(e => {
+      const d = new Date(e.timestamp * 1000);
+      let label = (currentTimeFrame === 'today') ? "Today" : d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+      const val = getWaterUsed(e);
+      
+      // Since logs are chronologically sorted, assigning the value ensures 
+      // the graph reflects the final state of the meter on that day, even if it was reset.
+      dayMap[label] = val; 
+    });
+
+    // 2. If viewing "Today", override with the absolute latest live sensor value
     // ONLY if there is data for today, OR if the live value has changed since the last known log
     if (currentTimeFrame === 'today') {
       let activeToday = false;
@@ -307,18 +318,11 @@ onAuthStateChanged(auth, user => {
         }
       }
 
+      // Forceably overwrite the historical logs with the LIVE value so it perfectly matches the cards
       if (activeToday) {
         dayMap["Today"] = liveWaterUsed;
       }
     }
-
-    // 2. Aggregate logs
-    filtered.forEach(e => {
-      const d = new Date(e.timestamp * 1000);
-      let label = (currentTimeFrame === 'today') ? "Today" : d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-      const val = getWaterUsed(e);
-      if (!dayMap[label] || val > dayMap[label]) dayMap[label] = val; // Use latest total for accurate scaling
-    });
 
     const chartData = Object.entries(dayMap).map(([t, v]) => ({ t, v }));
     renderChart(chartData, "totalWaterChart", "totalWaterXAxis", "totalWaterYAxis", "totalWaterChartVal", "L", "bar-total");

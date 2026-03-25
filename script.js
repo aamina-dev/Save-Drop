@@ -287,42 +287,43 @@ onAuthStateChanged(auth, user => {
 
     // Aggregate data for Chart Mapping
     const dayMap = {};
+    let previousVal = 0;
 
-    // 1. Aggregate logs (extract chronological history first)
-    filtered.forEach(e => {
+    // 1. Calculate cumulative positive increases across ALL chronological logs
+    allLogEntries.forEach(e => {
       const d = new Date(e.timestamp * 1000);
       let label = (currentTimeFrame === 'today') ? "Today" : d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-      const val = getWaterUsed(e);
       
-      // Since logs are chronologically sorted, assigning the value ensures 
-      // the graph reflects the final state of the meter on that day, even if it was reset.
-      dayMap[label] = val; 
+      const currentVal = getWaterUsed(e);
+      let added = 0;
+      if (currentVal > previousVal) {
+        added = currentVal - previousVal;
+      }
+      previousVal = currentVal;
+
+      // Only display it if it belongs to the filtered timeframe
+      if (filtered.includes(e)) {
+        if (!dayMap[label]) dayMap[label] = 0;
+        dayMap[label] += added;
+      }
     });
 
-    // 2. If viewing "Today", override with the absolute latest live sensor value
-    // ONLY if there is data for today, OR if the live value has changed since the last known log
+    // 2. If viewing "Today", add any live unlogged water usage
     if (currentTimeFrame === 'today') {
-      let activeToday = false;
-      if (filtered.length > 0) {
-        activeToday = true;
-      } else {
-        const lastLog = allLogEntries.length > 0 ? allLogEntries[allLogEntries.length - 1] : null;
-        if (lastLog) {
-          const lastVal = getWaterUsed(lastLog);
-          const liveValRounded = parseFloat(Number(liveWaterUsed).toFixed(2));
-          if (liveValRounded !== lastVal) {
-            activeToday = true;
-          }
-        } else if (liveWaterUsed > 0) {
-          activeToday = true;
-        }
+      let liveAdded = 0;
+      if (liveWaterUsed > previousVal) {
+        liveAdded = liveWaterUsed - previousVal;
       }
-
-      // Forceably overwrite the historical logs with the LIVE value so it perfectly matches the cards
-      if (activeToday) {
-        dayMap["Today"] = liveWaterUsed;
+      
+      if (liveAdded > 0 || dayMap["Today"] !== undefined) {
+        dayMap["Today"] = parseFloat(((dayMap["Today"] || 0) + liveAdded).toFixed(2));
       }
     }
+
+    // Force values to 2 decimal places for clean UI
+    Object.keys(dayMap).forEach(k => {
+      dayMap[k] = parseFloat(Number(dayMap[k]).toFixed(2));
+    });
 
     const chartData = Object.entries(dayMap).map(([t, v]) => ({ t, v }));
     renderChart(chartData, "totalWaterChart", "totalWaterXAxis", "totalWaterYAxis", "totalWaterChartVal", "L", "bar-total");

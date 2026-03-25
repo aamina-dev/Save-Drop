@@ -298,7 +298,8 @@ onAuthStateChanged(auth, user => {
         const lastLog = allLogEntries.length > 0 ? allLogEntries[allLogEntries.length - 1] : null;
         if (lastLog) {
           const lastVal = getWaterUsed(lastLog);
-          if (Math.abs(liveWaterUsed - lastVal) > 0.001) {
+          const liveValRounded = parseFloat(Number(liveWaterUsed).toFixed(2));
+          if (liveValRounded !== lastVal) {
             activeToday = true;
           }
         } else if (liveWaterUsed > 0) {

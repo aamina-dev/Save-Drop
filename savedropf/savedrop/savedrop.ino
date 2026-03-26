@@ -1,5 +1,4 @@
 /* 
-  =========================================================================
   SAVE-DROP: SMART WATER MONITORING SYSTEM (FINAL FIRMWARE)
   Project: IoT-based Water Consumption & Tank Level Monitor
   Developed by: Ansari Aamina
@@ -8,7 +7,7 @@
   - Microcontroller: NodeMCU (ESP8266)
   - Database: Firebase Realtime Database
   - Sensors: YF-S201 (Flow), HC-SR04 (Ultrasonic)
-  =========================================================================
+
 */
 
 #include <ESP8266WiFi.h>
@@ -17,8 +16,8 @@
 
 /* ---------------- WIFI CONFIG ---------------- */
 // Home WiFi credentials for internet connectivity
-#define WIFI_SSID "Jasmine"
-#define WIFI_PASSWORD "yaseen786"
+#define WIFI_SSID "Aamina"
+#define WIFI_PASSWORD "aamina28"
 
 /* ---------------- FIREBASE CONFIG ---------------- */
 // Firebase Database secrets for secure data synchronization
@@ -172,6 +171,7 @@ void loop() {
       // Save every 5 mins OR if water is actively flowing
       if (flowRate > 0 || (currentMillis - lastLogMillis >= 300000)) {
         FirebaseJson logJson;
+        logJson.set("deviceKey", DEVICE_SECRET); // REQUIRED for the new Firebase Rules
         logJson.set("timestamp", (unsigned long)time(nullptr));
         logJson.set("flowRate", flowRate);
         logJson.set("tankLevel", percentage);

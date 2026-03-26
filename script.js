@@ -51,6 +51,7 @@ const costStatusEl = document.getElementById("costStatus");
 let allLogEntries = [];        // Stores permanent historical records from cloud
 let currentTimeFrame = 'today'; // Controls current chart view (Today/Week/All)
 let liveWaterUsed = 0;         // Latest consumption value from live sensor
+let logsLoaded = false;        // Gate flag: prevents chart render before history loads
 
 const WATER_RATE_PER_LITRE = 0.15; // Set your water rate here (e.g. 0.15 Rs per Litre)
 
@@ -315,7 +316,14 @@ onAuthStateChanged(auth, user => {
         liveAdded = liveWaterUsed - previousVal;
       }
       
-      if (liveAdded > 0 || dayMap["Today"] !== undefined) {
+      // Show "Today" bar if:
+      // a) There is new unlogged water (liveAdded > 0), OR
+      // b) Today already has logged data (dayMap["Today"] exists), OR
+      // c) The live sensor is actively reading water (even if it matches yesterday's last log)
+      const hasLoggedToday = dayMap["Today"] !== undefined;
+      const hasLiveWater = liveWaterUsed > 0 && filtered.length > 0;
+      
+      if (liveAdded > 0 || hasLoggedToday || hasLiveWater) {
         dayMap["Today"] = parseFloat(((dayMap["Today"] || 0) + liveAdded).toFixed(2));
       }
     }
@@ -363,7 +371,8 @@ onAuthStateChanged(auth, user => {
     }
 
     // 4. Live Chart Update: Refresh the "Today" chart instantly when live water flows
-    if (currentTimeFrame === 'today') {
+    // Only render if logs have loaded at least once (prevents flash-then-disappear bug)
+    if (currentTimeFrame === 'today' && logsLoaded) {
       applyTimeFrameFilter();
     }
   });
@@ -398,6 +407,7 @@ onAuthStateChanged(auth, user => {
     } else {
       allLogEntries = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
     }
+    logsLoaded = true; // History is now available, safe to render charts
     // Always refresh chart even if logs are empty (to show "Live" data point)
     applyTimeFrameFilter();
   });

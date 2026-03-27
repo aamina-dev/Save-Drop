@@ -3,12 +3,6 @@
   Project: IoT-based Water Consumption & Tank Level Monitor
   Developed by: Ansari Aamina
   
-  TECHNICAL OVERVIEW:
-  - Microcontroller: NodeMCU (ESP8266)
-  - Database: Firebase Realtime Database
-  - Sensors: YF-S201 (Flow), HC-SR04 (Ultrasonic)
-
-*/
 
 #include <ESP8266WiFi.h>
 #include <Firebase_ESP_Client.h>
